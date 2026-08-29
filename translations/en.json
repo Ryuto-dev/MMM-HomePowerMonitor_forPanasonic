@@ -1,0 +1,20 @@
+{
+	"LOADING": "Loading power data...",
+	"CONFIG_MISSING": "Please configure ipAddress and deviceId.",
+	"CONNECTION_ERROR": "Connection error",
+	"UPDATED": "Updated",
+	"GENERATION": "Solar",
+	"CONSUMPTION": "Home",
+	"SELF_SUFFICIENCY": "self-sufficiency",
+	"SELLING": "Selling",
+	"BUYING": "Buying",
+	"STATUS_SELLING": "Selling power",
+	"STATUS_BUYING": "Buying power",
+	"TODAY": "Today",
+	"SELL": "Sell",
+	"BUY": "Buy",
+	"SELL_AMOUNT": "Sell income",
+	"BUY_AMOUNT": "Buy cost",
+	"NET_BALANCE": "Net",
+	"LIFETIME": "Lifetime"
+}

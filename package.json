@@ -1,0 +1,29 @@
+{
+  "name": "MMM-HomePowerMonitor_forPanasonic",
+  "version": "1.0.0",
+  "description": "MagicMirror² module for Panasonic energy monitor power detection units (e.g. VBPX274) — shows realtime solar/grid/home power flow with modern animated visuals.",
+  "main": "MMM-HomePowerMonitor_forPanasonic.js",
+  "scripts": {
+    "test": "echo \"No automated tests yet\" && exit 0"
+  },
+  "keywords": [
+    "magicmirror",
+    "magicmirror2",
+    "MMM",
+    "panasonic",
+    "energy-monitor",
+    "vbpx274",
+    "solar",
+    "power-monitor",
+    "hems"
+  ],
+  "author": "Ryuto-dev",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ryuto-dev/MMM-HomePowerMonitor_forPanasonic.git"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
