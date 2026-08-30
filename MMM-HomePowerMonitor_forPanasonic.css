@@ -1,0 +1,606 @@
+/*
+ * MMM-HomePowerMonitor_forPanasonic.css
+ * Modern glass/neon styled dashboard for Panasonic energy monitor power
+ * detection units. Includes layout variants for `bar` positions
+ * (top_bar/bottom_bar - wide & short) vs `side` positions (left/right -
+ * narrow & tall) vs `center` positions (balanced).
+ */
+
+.mmm-hpm {
+	--hpm-gen: #ffd166;
+	--hpm-sell: #06d6a0;
+	--hpm-buy: #ef476f;
+	--hpm-use: #4cc9f0;
+	--hpm-bg: rgba(255, 255, 255, 0.04);
+	--hpm-border: rgba(255, 255, 255, 0.12);
+	font-family: inherit;
+	color: #eaeaea;
+	box-sizing: border-box;
+	max-width: 100%;
+}
+
+.mmm-hpm * {
+	box-sizing: border-box;
+}
+
+/* ------------------------------------------------------------------ */
+/* Loading / error states                                             */
+/* ------------------------------------------------------------------ */
+
+.mmm-hpm__loading {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	opacity: 0.8;
+	font-size: 0.9em;
+}
+
+.mmm-hpm__spinner {
+	width: 16px;
+	height: 16px;
+	border: 2px solid rgba(255, 255, 255, 0.25);
+	border-top-color: #4cc9f0;
+	border-radius: 50%;
+	animation: hpm-spin 0.9s linear infinite;
+}
+
+@keyframes hpm-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.mmm-hpm__error {
+	color: var(--hpm-buy);
+	font-size: 0.85em;
+	opacity: 0.9;
+}
+
+/* ------------------------------------------------------------------ */
+/* Flow diagram (solar -> home -> grid)                               */
+/* ------------------------------------------------------------------ */
+
+.mmm-hpm__flow {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 4px;
+	width: 100%;
+}
+
+.mmm-hpm__node {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	flex: 0 0 auto;
+	min-width: 64px;
+}
+
+.mmm-hpm__icon {
+	width: 56px;
+	height: 56px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 26px;
+	background: var(--hpm-bg);
+	border: 1px solid var(--hpm-border);
+	box-shadow: 0 0 18px rgba(255, 255, 255, 0.04) inset;
+	animation: hpm-pulse 3s ease-in-out infinite;
+}
+
+@keyframes hpm-pulse {
+	0%,
+	100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.06);
+	}
+}
+
+.mmm-hpm__node-label {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	line-height: 1.15;
+}
+
+.mmm-hpm__node-title {
+	font-size: 0.62em;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	opacity: 0.65;
+}
+
+.mmm-hpm__node-value {
+	font-size: 1em;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+/* Connecting lines with an animated flow dot */
+.mmm-hpm__line {
+	position: relative;
+	flex: 1 1 auto;
+	min-width: 30px;
+	display: flex;
+	align-items: center;
+}
+
+.mmm-hpm__line-track {
+	position: relative;
+	width: 100%;
+	height: 4px;
+	border-radius: 3px;
+	background: rgba(255, 255, 255, 0.08);
+	overflow: hidden;
+}
+
+.mmm-hpm__dot {
+	position: absolute;
+	top: 50%;
+	left: -10%;
+	width: 10px;
+	height: 10px;
+	margin-top: -5px;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.25);
+	box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.15);
+	opacity: 0;
+}
+
+.mmm-hpm__line--active .mmm-hpm__dot {
+	opacity: 1;
+	animation-name: hpm-flow-right;
+	animation-timing-function: linear;
+	animation-iteration-count: infinite;
+}
+
+.mmm-hpm__line--active.mmm-hpm__line--reverse .mmm-hpm__dot {
+	animation-name: hpm-flow-left;
+}
+
+.mmm-hpm__line--solar-home.mmm-hpm__line--active .mmm-hpm__dot {
+	background: var(--hpm-gen);
+	box-shadow: 0 0 10px 2px rgba(255, 209, 102, 0.55);
+}
+
+.mmm-hpm__line--home-grid.mmm-hpm__line--active:not(.mmm-hpm__line--reverse) .mmm-hpm__dot {
+	background: var(--hpm-sell);
+	box-shadow: 0 0 10px 2px rgba(6, 214, 160, 0.55);
+}
+
+.mmm-hpm__line--home-grid.mmm-hpm__line--active.mmm-hpm__line--reverse .mmm-hpm__dot {
+	background: var(--hpm-buy);
+	box-shadow: 0 0 10px 2px rgba(239, 71, 111, 0.55);
+}
+
+@keyframes hpm-flow-right {
+	0% {
+		left: -6%;
+		opacity: 0;
+	}
+	10% {
+		opacity: 1;
+	}
+	90% {
+		opacity: 1;
+	}
+	100% {
+		left: 100%;
+		opacity: 0;
+	}
+}
+
+@keyframes hpm-flow-left {
+	0% {
+		left: 100%;
+		opacity: 0;
+	}
+	10% {
+		opacity: 1;
+	}
+	90% {
+		opacity: 1;
+	}
+	100% {
+		left: -6%;
+		opacity: 0;
+	}
+}
+
+/* ------------------------------------------------------------------ */
+/* Self-sufficiency ring (home node)                                  */
+/* ------------------------------------------------------------------ */
+
+.mmm-hpm__node--home .mmm-hpm__ssr-ring {
+	position: relative;
+	width: 74px;
+	height: 74px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.mmm-hpm__ssr-svg {
+	width: 74px;
+	height: 74px;
+	transform: rotate(0deg);
+}
+
+.mmm-hpm__ssr-bg {
+	fill: none;
+	stroke: rgba(255, 255, 255, 0.08);
+	stroke-width: 6;
+}
+
+.mmm-hpm__ssr-fg {
+	fill: none;
+	stroke: var(--hpm-use);
+	stroke-width: 6;
+	stroke-linecap: round;
+	transition: stroke-dashoffset 0.8s ease;
+}
+
+.mmm-hpm__ssr-text {
+	position: absolute;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	line-height: 1.05;
+}
+
+.mmm-hpm__ssr-pct {
+	font-size: 0.95em;
+	font-weight: 700;
+}
+
+.mmm-hpm__ssr-caption {
+	font-size: 0.42em;
+	text-transform: uppercase;
+	opacity: 0.6;
+	letter-spacing: 0.04em;
+}
+
+/* ------------------------------------------------------------------ */
+/* Status badge (selling / buying)                                    */
+/* ------------------------------------------------------------------ */
+
+.mmm-hpm__status-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 8px;
+	padding: 3px 10px;
+	border-radius: 20px;
+	font-size: 0.62em;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	font-weight: 600;
+}
+
+.mmm-hpm__status-badge--sell {
+	background: rgba(6, 214, 160, 0.12);
+	color: var(--hpm-sell);
+	border: 1px solid rgba(6, 214, 160, 0.35);
+}
+
+.mmm-hpm__status-badge--buy {
+	background: rgba(239, 71, 111, 0.12);
+	color: var(--hpm-buy);
+	border: 1px solid rgba(239, 71, 111, 0.35);
+}
+
+.mmm-hpm__status-dot {
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: currentColor;
+	animation: hpm-blink 1.6s ease-in-out infinite;
+}
+
+@keyframes hpm-blink {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.25;
+	}
+}
+
+/* ------------------------------------------------------------------ */
+/* Daily section (bars + money)                                       */
+/* ------------------------------------------------------------------ */
+
+.mmm-hpm__section-title {
+	margin-top: 14px;
+	margin-bottom: 6px;
+	font-size: 0.68em;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	opacity: 0.55;
+}
+
+.mmm-hpm__bars {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.mmm-hpm__bar-row {
+	display: grid;
+	grid-template-columns: 52px 1fr 78px;
+	align-items: center;
+	gap: 8px;
+	font-size: 0.72em;
+}
+
+.mmm-hpm__bar-label {
+	opacity: 0.75;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.mmm-hpm__bar-track {
+	height: 8px;
+	border-radius: 5px;
+	background: rgba(255, 255, 255, 0.08);
+	overflow: hidden;
+}
+
+.mmm-hpm__bar-fill {
+	height: 100%;
+	border-radius: 5px;
+	transition: width 1s ease;
+	box-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+}
+
+.mmm-hpm__bar-value {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+	opacity: 0.9;
+}
+
+.mmm-hpm__money {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 8px;
+	font-size: 0.7em;
+	opacity: 0.85;
+}
+
+.mmm-hpm__money-item {
+	white-space: nowrap;
+}
+
+.mmm-hpm__money-net--positive {
+	color: var(--hpm-sell);
+}
+
+.mmm-hpm__money-net--negative {
+	color: var(--hpm-buy);
+}
+
+/* ------------------------------------------------------------------ */
+/* Lifetime total footer                                              */
+/* ------------------------------------------------------------------ */
+
+.mmm-hpm__total {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 10px;
+	padding-top: 8px;
+	border-top: 1px dashed var(--hpm-border);
+	font-size: 0.66em;
+	opacity: 0.65;
+}
+
+.mmm-hpm__total-item {
+	white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ */
+/* Meta (last updated / errors)                                       */
+/* ------------------------------------------------------------------ */
+
+.mmm-hpm__meta {
+	margin-top: 8px;
+	font-size: 0.6em;
+	opacity: 0.5;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
+.mmm-hpm__meta--error {
+	color: var(--hpm-buy);
+	opacity: 0.9;
+}
+
+.mmm-hpm__meta-dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+}
+
+.mmm-hpm__meta-dot--ok {
+	background: var(--hpm-sell);
+	box-shadow: 0 0 6px rgba(6, 214, 160, 0.7);
+}
+
+/* ==================================================================== */
+/* Layout variants — sizing differs a lot between `bar` and side/center */
+/* ==================================================================== */
+
+/* --- top_bar / bottom_bar: very wide, but height is tight --------- */
+.mmm-hpm--bar {
+	width: 100%;
+}
+
+.mmm-hpm--bar .mmm-hpm__flow {
+	gap: 10px;
+}
+
+.mmm-hpm--bar .mmm-hpm__icon,
+.mmm-hpm--bar .mmm-hpm__ssr-svg,
+.mmm-hpm--bar .mmm-hpm__node--home .mmm-hpm__ssr-ring {
+	width: 40px;
+	height: 40px;
+	font-size: 18px;
+}
+
+.mmm-hpm--bar .mmm-hpm__ssr-pct {
+	font-size: 0.85em;
+}
+
+.mmm-hpm--bar .mmm-hpm__ssr-caption {
+	display: none;
+}
+
+.mmm-hpm--bar .mmm-hpm__node {
+	min-width: 46px;
+}
+
+.mmm-hpm--bar .mmm-hpm__node-title {
+	display: none;
+}
+
+.mmm-hpm--bar .mmm-hpm__node-value {
+	font-size: 0.85em;
+}
+
+.mmm-hpm--bar .mmm-hpm__section-title,
+.mmm-hpm--bar .mmm-hpm__total {
+	display: none;
+}
+
+.mmm-hpm--bar .mmm-hpm__bars {
+	flex-direction: row;
+	gap: 14px;
+	margin-top: 4px;
+}
+
+.mmm-hpm--bar .mmm-hpm__bar-row {
+	grid-template-columns: auto;
+	grid-template-rows: auto auto;
+	width: 130px;
+}
+
+.mmm-hpm--bar .mmm-hpm__bar-track {
+	grid-column: 1 / -1;
+	order: 2;
+}
+
+.mmm-hpm--bar .mmm-hpm__bar-value {
+	order: 3;
+	text-align: left;
+}
+
+.mmm-hpm--bar .mmm-hpm__money {
+	margin-top: 4px;
+}
+
+.mmm-hpm--bar .mmm-hpm__status-badge {
+	margin-top: 0;
+	margin-left: 6px;
+}
+
+/* --- left / right sidebars: narrow, but can grow tall -------------- */
+.mmm-hpm--side {
+	width: 100%;
+}
+
+.mmm-hpm--side .mmm-hpm__flow {
+	flex-direction: column;
+	gap: 2px;
+}
+
+.mmm-hpm--side .mmm-hpm__line {
+	width: 4px;
+	min-width: 4px;
+	height: 34px;
+	min-height: 34px;
+	flex: 0 0 auto;
+}
+
+.mmm-hpm--side .mmm-hpm__line-track {
+	width: 4px;
+	height: 100%;
+}
+
+.mmm-hpm--side .mmm-hpm__dot {
+	left: 50%;
+	top: -10%;
+	margin-left: -5px;
+	margin-top: 0;
+}
+
+.mmm-hpm--side .mmm-hpm__line--active .mmm-hpm__dot {
+	animation-name: hpm-flow-down;
+}
+
+.mmm-hpm--side .mmm-hpm__line--active.mmm-hpm__line--reverse .mmm-hpm__dot {
+	animation-name: hpm-flow-up;
+}
+
+@keyframes hpm-flow-down {
+	0% {
+		top: -6%;
+		opacity: 0;
+	}
+	10% {
+		opacity: 1;
+	}
+	90% {
+		opacity: 1;
+	}
+	100% {
+		top: 100%;
+		opacity: 0;
+	}
+}
+
+@keyframes hpm-flow-up {
+	0% {
+		top: 100%;
+		opacity: 0;
+	}
+	10% {
+		opacity: 1;
+	}
+	90% {
+		opacity: 1;
+	}
+	100% {
+		top: -6%;
+		opacity: 0;
+	}
+}
+
+.mmm-hpm--side .mmm-hpm__node {
+	min-width: 0;
+	width: 100%;
+}
+
+.mmm-hpm--side .mmm-hpm__bar-row {
+	grid-template-columns: 46px 1fr 70px;
+	font-size: 0.68em;
+}
+
+.mmm-hpm--side .mmm-hpm__money,
+.mmm-hpm--side .mmm-hpm__total {
+	flex-direction: column;
+	gap: 3px;
+}
+
+/* --- center regions (top_center/middle_center/etc.): balanced ----- */
+.mmm-hpm--center .mmm-hpm__flow {
+	gap: 8px;
+}

@@ -1,0 +1,20 @@
+{
+	"LOADING": "電力データを取得中...",
+	"CONFIG_MISSING": "ipAddress と deviceId を設定してください。",
+	"CONNECTION_ERROR": "接続エラー",
+	"UPDATED": "更新",
+	"GENERATION": "発電",
+	"CONSUMPTION": "消費",
+	"SELF_SUFFICIENCY": "自給率",
+	"SELLING": "売電中",
+	"BUYING": "買電中",
+	"STATUS_SELLING": "売電中",
+	"STATUS_BUYING": "買電中",
+	"TODAY": "本日",
+	"SELL": "売電",
+	"BUY": "買電",
+	"SELL_AMOUNT": "売電金額",
+	"BUY_AMOUNT": "買電金額",
+	"NET_BALANCE": "収支",
+	"LIFETIME": "累計"
+}

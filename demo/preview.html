@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>MMM-HomePowerMonitor_forPanasonic Preview</title>
+<link rel="stylesheet" href="../MMM-HomePowerMonitor_forPanasonic.css" />
+<style>
+	body {
+		background: #000 url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='4' height='4'><rect width='4' height='4' fill='%23050505'/></svg>");
+		background-color: #050505;
+		color: #eee;
+		font-family: "Roboto Condensed", Arial, sans-serif;
+		margin: 0;
+		padding: 40px;
+		display: flex;
+		flex-direction: column;
+		gap: 40px;
+	}
+	.frame {
+		border: 1px dashed rgba(255,255,255,0.25);
+		padding: 16px;
+	}
+	.label {
+		font-size: 12px;
+		opacity: 0.5;
+		margin-bottom: 8px;
+		text-transform: uppercase;
+	}
+	.frame.center { width: 420px; }
+	.frame.side { width: 300px; }
+	.frame.bar { width: 900px; }
+</style>
+</head>
+<body>
+
+<div class="frame center">
+	<div class="label">position: top_right / middle_center (center)</div>
+	<div class="mmm-hpm mmm-hpm--center">
+		<div class="mmm-hpm__flow">
+			<div class="mmm-hpm__node mmm-hpm__node--solar">
+				<div class="mmm-hpm__icon" style="color:#ffd166">☀️</div>
+				<div class="mmm-hpm__node-label"><span class="mmm-hpm__node-title">発電</span><span class="mmm-hpm__node-value" style="color:#ffd166">1420.0 W</span></div>
+			</div>
+			<div class="mmm-hpm__line mmm-hpm__line--solar-home mmm-hpm__line--active">
+				<div class="mmm-hpm__line-track"><div class="mmm-hpm__dot" style="animation-duration:1.4s"></div></div>
+			</div>
+			<div class="mmm-hpm__node mmm-hpm__node--home">
+				<div class="mmm-hpm__ssr-ring">
+					<svg viewBox="0 0 80 80" class="mmm-hpm__ssr-svg">
+						<circle cx="40" cy="40" r="34" class="mmm-hpm__ssr-bg"></circle>
+						<circle cx="40" cy="40" r="34" class="mmm-hpm__ssr-fg" stroke-dasharray="213.6" stroke-dashoffset="64" transform="rotate(-90 40 40)"></circle>
+					</svg>
+					<div class="mmm-hpm__ssr-text"><span class="mmm-hpm__ssr-pct">70%</span><span class="mmm-hpm__ssr-caption">自給率</span></div>
+				</div>
+				<div class="mmm-hpm__node-label"><span class="mmm-hpm__node-title">消費</span><span class="mmm-hpm__node-value" style="color:#4cc9f0">2030.0 W</span></div>
+			</div>
+			<div class="mmm-hpm__line mmm-hpm__line--home-grid mmm-hpm__line--active mmm-hpm__line--reverse">
+				<div class="mmm-hpm__line-track"><div class="mmm-hpm__dot" style="animation-duration:2.1s"></div></div>
+			</div>
+			<div class="mmm-hpm__node mmm-hpm__node--grid">
+				<div class="mmm-hpm__icon" style="color:#ef476f">⚡</div>
+				<div class="mmm-hpm__node-label"><span class="mmm-hpm__node-title">買電中</span><span class="mmm-hpm__node-value" style="color:#ef476f">610.0 W</span></div>
+			</div>
+		</div>
+		<div class="mmm-hpm__status-badge mmm-hpm__status-badge--buy"><span class="mmm-hpm__status-dot"></span>買電中</div>
+
+		<div class="mmm-hpm__section-title">本日</div>
+		<div class="mmm-hpm__bars">
+			<div class="mmm-hpm__bar-row"><span class="mmm-hpm__bar-label">発電</span><div class="mmm-hpm__bar-track"><div class="mmm-hpm__bar-fill" style="width:60%;background:#ffd166"></div></div><span class="mmm-hpm__bar-value">8.40 kWh</span></div>
+			<div class="mmm-hpm__bar-row"><span class="mmm-hpm__bar-label">売電</span><div class="mmm-hpm__bar-track"><div class="mmm-hpm__bar-fill" style="width:6%;background:#06d6a0"></div></div><span class="mmm-hpm__bar-value">0.90 kWh</span></div>
+			<div class="mmm-hpm__bar-row"><span class="mmm-hpm__bar-label">買電</span><div class="mmm-hpm__bar-track"><div class="mmm-hpm__bar-fill" style="width:100%;background:#ef476f"></div></div><span class="mmm-hpm__bar-value">15.40 kWh</span></div>
+		</div>
+		<div class="mmm-hpm__money">
+			<span class="mmm-hpm__money-item">売電金額: ¥27</span>
+			<span class="mmm-hpm__money-item">買電金額: ¥478</span>
+			<span class="mmm-hpm__money-item mmm-hpm__money-net--negative">収支: -¥451</span>
+		</div>
+
+		<div class="mmm-hpm__total">
+			<span class="mmm-hpm__total-item">累計 発電: 12500.00 kWh</span>
+			<span class="mmm-hpm__total-item">売電: 4300.00 kWh</span>
+			<span class="mmm-hpm__total-item">買電: 9800.00 kWh</span>
+		</div>
+
+		<div class="mmm-hpm__meta"><span class="mmm-hpm__meta-dot mmm-hpm__meta-dot--ok"></span>更新: 21:14:05</div>
+	</div>
+</div>
+
+<div class="frame side">
+	<div class="label">position: top_left / top_right (side)</div>
+	<div class="mmm-hpm mmm-hpm--side">
+		<div class="mmm-hpm__flow">
+			<div class="mmm-hpm__node mmm-hpm__node--solar">
+				<div class="mmm-hpm__icon" style="color:#ffd166">☀️</div>
+				<div class="mmm-hpm__node-label"><span class="mmm-hpm__node-title">発電</span><span class="mmm-hpm__node-value" style="color:#ffd166">1420.0 W</span></div>
+			</div>
+			<div class="mmm-hpm__line mmm-hpm__line--solar-home mmm-hpm__line--active">
+				<div class="mmm-hpm__line-track"><div class="mmm-hpm__dot" style="animation-duration:1.4s"></div></div>
+			</div>
+			<div class="mmm-hpm__node mmm-hpm__node--home">
+				<div class="mmm-hpm__ssr-ring">
+					<svg viewBox="0 0 80 80" class="mmm-hpm__ssr-svg">
+						<circle cx="40" cy="40" r="34" class="mmm-hpm__ssr-bg"></circle>
+						<circle cx="40" cy="40" r="34" class="mmm-hpm__ssr-fg" stroke-dasharray="213.6" stroke-dashoffset="64" transform="rotate(-90 40 40)"></circle>
+					</svg>
+					<div class="mmm-hpm__ssr-text"><span class="mmm-hpm__ssr-pct">70%</span><span class="mmm-hpm__ssr-caption">自給率</span></div>
+				</div>
+				<div class="mmm-hpm__node-label"><span class="mmm-hpm__node-title">消費</span><span class="mmm-hpm__node-value" style="color:#4cc9f0">2030.0 W</span></div>
+			</div>
+			<div class="mmm-hpm__line mmm-hpm__line--home-grid mmm-hpm__line--active mmm-hpm__line--reverse">
+				<div class="mmm-hpm__line-track"><div class="mmm-hpm__dot" style="animation-duration:2.1s"></div></div>
+			</div>
+			<div class="mmm-hpm__node mmm-hpm__node--grid">
+				<div class="mmm-hpm__icon" style="color:#ef476f">⚡</div>
+				<div class="mmm-hpm__node-label"><span class="mmm-hpm__node-title">買電中</span><span class="mmm-hpm__node-value" style="color:#ef476f">610.0 W</span></div>
+			</div>
+		</div>
+		<div class="mmm-hpm__status-badge mmm-hpm__status-badge--buy"><span class="mmm-hpm__status-dot"></span>買電中</div>
+
+		<div class="mmm-hpm__section-title">本日</div>
+		<div class="mmm-hpm__bars">
+			<div class="mmm-hpm__bar-row"><span class="mmm-hpm__bar-label">発電</span><div class="mmm-hpm__bar-track"><div class="mmm-hpm__bar-fill" style="width:60%;background:#ffd166"></div></div><span class="mmm-hpm__bar-value">8.40 kWh</span></div>
+			<div class="mmm-hpm__bar-row"><span class="mmm-hpm__bar-label">売電</span><div class="mmm-hpm__bar-track"><div class="mmm-hpm__bar-fill" style="width:6%;background:#06d6a0"></div></div><span class="mmm-hpm__bar-value">0.90 kWh</span></div>
+			<div class="mmm-hpm__bar-row"><span class="mmm-hpm__bar-label">買電</span><div class="mmm-hpm__bar-track"><div class="mmm-hpm__bar-fill" style="width:100%;background:#ef476f"></div></div><span class="mmm-hpm__bar-value">15.40 kWh</span></div>
+		</div>
+		<div class="mmm-hpm__meta"><span class="mmm-hpm__meta-dot mmm-hpm__meta-dot--ok"></span>更新: 21:14:05</div>
+	</div>
+</div>
+
+<div class="frame bar">
+	<div class="label">position: top_bar / bottom_bar (bar)</div>
+	<div class="mmm-hpm mmm-hpm--bar">
+		<div class="mmm-hpm__flow">
+			<div class="mmm-hpm__node mmm-hpm__node--solar">
+				<div class="mmm-hpm__icon" style="color:#ffd166">☀️</div>
+				<div class="mmm-hpm__node-label"><span class="mmm-hpm__node-title">発電</span><span class="mmm-hpm__node-value" style="color:#ffd166">1420.0 W</span></div>
+			</div>
+			<div class="mmm-hpm__line mmm-hpm__line--solar-home mmm-hpm__line--active">
+				<div class="mmm-hpm__line-track"><div class="mmm-hpm__dot" style="animation-duration:1.4s"></div></div>
+			</div>
+			<div class="mmm-hpm__node mmm-hpm__node--home">
+				<div class="mmm-hpm__ssr-ring">
+					<svg viewBox="0 0 80 80" class="mmm-hpm__ssr-svg">
+						<circle cx="40" cy="40" r="34" class="mmm-hpm__ssr-bg"></circle>
+						<circle cx="40" cy="40" r="34" class="mmm-hpm__ssr-fg" stroke-dasharray="213.6" stroke-dashoffset="64" transform="rotate(-90 40 40)"></circle>
+					</svg>
+					<div class="mmm-hpm__ssr-text"><span class="mmm-hpm__ssr-pct">70%</span><span class="mmm-hpm__ssr-caption">自給率</span></div>
+				</div>
+				<div class="mmm-hpm__node-label"><span class="mmm-hpm__node-title">消費</span><span class="mmm-hpm__node-value" style="color:#4cc9f0">2030.0 W</span></div>
+			</div>
+			<div class="mmm-hpm__line mmm-hpm__line--home-grid mmm-hpm__line--active mmm-hpm__line--reverse">
+				<div class="mmm-hpm__line-track"><div class="mmm-hpm__dot" style="animation-duration:2.1s"></div></div>
+			</div>
+			<div class="mmm-hpm__node mmm-hpm__node--grid">
+				<div class="mmm-hpm__icon" style="color:#ef476f">⚡</div>
+				<div class="mmm-hpm__node-label"><span class="mmm-hpm__node-title">買電中</span><span class="mmm-hpm__node-value" style="color:#ef476f">610.0 W</span></div>
+			</div>
+			<div class="mmm-hpm__status-badge mmm-hpm__status-badge--buy"><span class="mmm-hpm__status-dot"></span>買電中</div>
+		</div>
+		<div class="mmm-hpm__bars">
+			<div class="mmm-hpm__bar-row"><span class="mmm-hpm__bar-label">発電</span><div class="mmm-hpm__bar-track"><div class="mmm-hpm__bar-fill" style="width:60%;background:#ffd166"></div></div><span class="mmm-hpm__bar-value">8.40 kWh</span></div>
+			<div class="mmm-hpm__bar-row"><span class="mmm-hpm__bar-label">売電</span><div class="mmm-hpm__bar-track"><div class="mmm-hpm__bar-fill" style="width:6%;background:#06d6a0"></div></div><span class="mmm-hpm__bar-value">0.90 kWh</span></div>
+			<div class="mmm-hpm__bar-row"><span class="mmm-hpm__bar-label">買電</span><div class="mmm-hpm__bar-track"><div class="mmm-hpm__bar-fill" style="width:100%;background:#ef476f"></div></div><span class="mmm-hpm__bar-value">15.40 kWh</span></div>
+		</div>
+		<div class="mmm-hpm__meta"><span class="mmm-hpm__meta-dot mmm-hpm__meta-dot--ok"></span>更新: 21:14:05</div>
+	</div>
+</div>
+
+</body>
+</html>
