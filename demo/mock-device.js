@@ -5,17 +5,36 @@
  * power detection unit's `getinfo.cgi` endpoint, so the module can be
  * developed and previewed without real hardware.
  *
+ * Like the real hardware, the endpoint is protected with HTTP Basic
+ * authentication.
+ *
  * Usage:
- *   node demo/mock-device.js [port]
+ *   node demo/mock-device.js [port] [username] [password]
  *
  * Then set in config.js:
- *   ipAddress: "127.0.0.1", port: <port>, deviceId: "17120385X"
+ *   ipAddress: "127.0.0.1", port: <port>, deviceId: "17120385X",
+ *   username: "user", password: "12345678"
  */
 
 const http = require("http");
 
 const PORT = parseInt(process.argv[2], 10) || 9998;
+const USERNAME = process.argv[3] || "user";
+const PASSWORD = process.argv[4] || "12345678";
 const DEVICE_ID = "17120385X";
+
+function isAuthorized (req) {
+	const header = req.headers.authorization || "";
+	const match = header.match(/^Basic\s+(.+)$/i);
+	if (!match) {
+		return false;
+	}
+	const decoded = Buffer.from(match[1], "base64").toString("utf8");
+	const sep = decoded.indexOf(":");
+	const user = sep === -1 ? decoded : decoded.slice(0, sep);
+	const pass = sep === -1 ? "" : decoded.slice(sep + 1);
+	return user === USERNAME && pass === PASSWORD;
+}
 
 function randomWalk (value, min, max, step) {
 	let v = value + (Math.random() - 0.5) * step;
@@ -90,6 +109,15 @@ function respond (res, items) {
 }
 
 const server = http.createServer((req, res) => {
+	if (!isAuthorized(req)) {
+		res.writeHead(401, {
+			"WWW-Authenticate": "Basic realm=\"energy-monitor\"",
+			"Content-Type": "text/plain"
+		});
+		res.end("401 Unauthorized");
+		return;
+	}
+
 	const url = new URL(req.url, `http://${req.headers.host}`);
 	if (url.pathname !== "/getinfo.cgi") {
 		res.writeHead(404);
@@ -116,4 +144,5 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, () => {
 	console.log(`Mock Panasonic energy-monitor device listening on http://127.0.0.1:${PORT}/getinfo.cgi`);
 	console.log(`Device ID: ${DEVICE_ID}`);
+	console.log(`Basic auth: ${USERNAME} / ${PASSWORD}`);
 });

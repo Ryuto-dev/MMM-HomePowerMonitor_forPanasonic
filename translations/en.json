@@ -1,6 +1,8 @@
 {
 	"LOADING": "Loading power data...",
 	"CONFIG_MISSING": "Please configure ipAddress and deviceId.",
+	"AUTH_MISSING": "Please configure username and password (the device requires Basic authentication).",
+	"AUTH_ERROR": "Authentication failed — check username / password.",
 	"CONNECTION_ERROR": "Connection error",
 	"UPDATED": "Updated",
 	"GENERATION": "Solar",

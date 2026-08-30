@@ -18,6 +18,8 @@ Module.register("MMM-HomePowerMonitor_forPanasonic", {
 		// --- Connection (required) ---
 		ipAddress: "", // e.g. "192.168.1.105"
 		deviceId: "", // e.g. "17120385X"
+		username: "", // required: HTTP Basic auth user of the device (e.g. "user")
+		password: "", // required: HTTP Basic auth password of the device
 		port: 80,
 
 		// --- Timing ---
@@ -136,6 +138,12 @@ Module.register("MMM-HomePowerMonitor_forPanasonic", {
 		if (!this.config.ipAddress || !this.config.deviceId) {
 			wrapper.classList.add("mmm-hpm--config-error");
 			wrapper.innerHTML = `<div class="mmm-hpm__error">${this.translate("CONFIG_MISSING")}</div>`;
+			return wrapper;
+		}
+
+		if (!this.config.username || !this.config.password) {
+			wrapper.classList.add("mmm-hpm--config-error");
+			wrapper.innerHTML = `<div class="mmm-hpm__error">${this.translate("AUTH_MISSING")}</div>`;
 			return wrapper;
 		}
 
@@ -415,7 +423,9 @@ Module.register("MMM-HomePowerMonitor_forPanasonic", {
 
 		if (this.lastError) {
 			meta.classList.add("mmm-hpm__meta--error");
-			meta.innerHTML = `<span class="mmm-hpm__meta-icon">⚠️</span> ${this.translate("CONNECTION_ERROR")}: ${this.lastError}`;
+			const isAuthError = /401|403|Unauthorized|authentication/i.test(this.lastError);
+			const label = isAuthError ? this.translate("AUTH_ERROR") : `${this.translate("CONNECTION_ERROR")}: ${this.lastError}`;
+			meta.innerHTML = `<span class="mmm-hpm__meta-icon">⚠️</span> ${label}`;
 			return meta;
 		}
 

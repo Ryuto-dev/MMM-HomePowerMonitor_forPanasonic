@@ -1,6 +1,8 @@
 {
 	"LOADING": "電力データを取得中...",
 	"CONFIG_MISSING": "ipAddress と deviceId を設定してください。",
+	"AUTH_MISSING": "username と password を設定してください（機器がBasic認証を要求します）。",
+	"AUTH_ERROR": "認証に失敗しました。username / password を確認してください。",
 	"CONNECTION_ERROR": "接続エラー",
 	"UPDATED": "更新",
 	"GENERATION": "発電",
