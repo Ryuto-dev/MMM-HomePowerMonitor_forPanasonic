@@ -216,7 +216,8 @@ module.exports = NodeHelper.create({
 					port,
 					path,
 					headers,
-					timeout: config.requestTimeout || 5000
+					timeout: config.requestTimeout || 5000,
+					insecureHTTPParser: true
 				},
 				(res) => {
 					// 401/403 => wrong or missing credentials. Consume & report clearly
