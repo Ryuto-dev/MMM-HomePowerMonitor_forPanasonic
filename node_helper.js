@@ -8,6 +8,10 @@
  * Device API reference (as supplied by the user):
  *   GET http://<ip>/getinfo.cgi?<deviceId>&<slot>&<dateFrom>&<dateTo>&<items...>
  *
+ *   The device protects this endpoint with HTTP Basic authentication, so the
+ *   request must carry an `Authorization: Basic base64(user:password)` header
+ *   (equivalent to `curl -u "user:password" ...`).
+ *
  *   Response body looks like: {status&aux&deviceId&v3&v4&v5&...}
  *     res[0] = internal status string
  *     res[1] = aux value
@@ -175,7 +179,11 @@ module.exports = NodeHelper.create({
 
 	/**
 	 * Builds and performs the getinfo.cgi request.
-	 * @param {object} config module config (ipAddress, deviceId, port, requestTimeout)
+	 *
+	 * The Panasonic unit requires HTTP Basic authentication, so `username` and
+	 * `password` from the module config are always sent as an
+	 * `Authorization: Basic ...` header (same as `curl -u user:password`).
+	 * @param {object} config module config (ipAddress, deviceId, username, password, port, requestTimeout)
 	 * @param {string} dateFrom first date/code argument
 	 * @param {string} dateTo second date/code argument
 	 * @param {string[]} items list of item codes to request (e.g. ["IG0","ISI","IBI"])
@@ -188,18 +196,43 @@ module.exports = NodeHelper.create({
 				return;
 			}
 
+			if (!config.username || !config.password) {
+				reject(new Error("username/password not configured (device requires HTTP Basic authentication)"));
+				return;
+			}
+
 			const query = [config.deviceId, "0", dateFrom, dateTo, ...items].join("&");
 			const path = `/getinfo.cgi?${query}`;
 			const port = config.port || 80;
+
+			const headers = {
+				Accept: "*/*",
+				Authorization: `Basic ${Buffer.from(`${config.username}:${config.password}`, "utf8").toString("base64")}`
+			};
 
 			const req = http.get(
 				{
 					hostname: config.ipAddress,
 					port,
 					path,
+					headers,
 					timeout: config.requestTimeout || 5000
 				},
 				(res) => {
+					// 401/403 => wrong or missing credentials. Consume & report clearly
+					// instead of trying to parse an HTML auth-failure page.
+					if (res.statusCode === 401 || res.statusCode === 403) {
+						res.resume();
+						reject(new Error(`HTTP ${res.statusCode} Unauthorized — check username/password (Basic auth)`));
+						return;
+					}
+
+					if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
+						res.resume();
+						reject(new Error(`Unexpected HTTP status ${res.statusCode}`));
+						return;
+					}
+
 					const chunks = [];
 					res.on("data", (chunk) => chunks.push(chunk));
 					res.on("end", () => {
@@ -231,6 +264,13 @@ module.exports = NodeHelper.create({
 			throw new Error("Empty response from device");
 		}
 		const trimmed = body.trim();
+
+		// Some units answer a Basic-auth failure with an HTML page and a 200
+		// status, so guard against that too.
+		if (/^\s*</.test(trimmed) || /401 Unauthorized|Authorization Required/i.test(trimmed)) {
+			throw new Error("Device returned an authentication page — check username/password (Basic auth)");
+		}
+
 		const match = trimmed.match(/\{([^}]*)\}/);
 		const content = match ? match[1] : trimmed;
 		return content.split("&");

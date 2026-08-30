@@ -6,7 +6,8 @@ animated "energy flow" dashboard: solar generation → home consumption → grid
 lifetime totals.
 
 No cloud service, no API key — the module talks straight to the device's built-in `getinfo.cgi` HTTP endpoint on
-your LAN.
+your LAN. The endpoint is protected by **HTTP Basic authentication**, so the device's `username` / `password` are
+required in the config.
 
 ![Preview](docs/screenshot-preview.png)
 
@@ -43,8 +44,9 @@ mock-up of the three layout variants).
   `node_helper` APIs — see the
   [module development docs](https://docs.magicmirror.builders/module-development/introduction.html)).
 - A Panasonic energy-monitor **power detection unit** reachable on your local network (e.g. **VBPX274**,
-  VBPW274/VBPW274A/VBPW275, etc.) that exposes the `getinfo.cgi` HTTP interface. No API key/account is required —
-  this is a local, unauthenticated HTTP request to the device itself.
+  VBPW274/VBPW274A/VBPW275, etc.) that exposes the `getinfo.cgi` HTTP interface. No cloud API key/account is
+  required — this is a local HTTP request to the device itself — but the device **does require HTTP Basic
+  authentication** (the same credentials you use for its web UI).
 - Node.js (bundled with MagicMirror²). No extra npm packages are required — the node_helper only uses Node's
   built-in `http` module.
 
@@ -69,6 +71,8 @@ Add the module to the `modules` array in your `config/config.js`:
 	config: {
 		ipAddress: "192.168.1.105", // required: the device's IP address on your LAN
 		deviceId: "17120385X",      // required: the device ID / serial printed on the label
+		username: "user",           // required: HTTP Basic auth user of the device
+		password: "12345678",       // required: HTTP Basic auth password of the device
 		updateInterval: 5 * 1000    // optional: realtime polling interval — 5s by default, as requested
 	}
 }
@@ -80,6 +84,8 @@ Add the module to the `modules` array in your `config/config.js`:
 | --- | --- | --- | --- |
 | `ipAddress` | `String` | `""` (**required**) | IP address of the power detection unit on your local network. |
 | `deviceId` | `String` | `""` (**required**) | The device ID / serial (e.g. `17120385X`) used as the first `getinfo.cgi` query argument. |
+| `username` | `String` | `""` (**required**) | HTTP Basic authentication user name of the device (e.g. `user`). The unit rejects unauthenticated requests. |
+| `password` | `String` | `""` (**required**) | HTTP Basic authentication password of the device. |
 | `port` | `Number` | `80` | HTTP port of the device. |
 | `updateInterval` | `Number` (ms) | `5000` | How often the realtime power values (generation/sell/buy) are polled. **Default: 5 seconds**, as requested. |
 | `dailyUpdateInterval` | `Number` (ms) | `60000` | How often today's energy (Wh) & yen totals are refreshed. |
@@ -105,20 +111,34 @@ Add the module to the `modules` array in your `config/config.js`:
 | `flowReferenceWatts` | `Number` | `2000` | Power level (W) at which the flow animation reaches `minFlowDurationSec`. |
 | `debug` | `Boolean` | `false` | Log extra diagnostics to the MagicMirror server console. |
 
-### Finding your `deviceId` and `ipAddress`
+### Finding your `deviceId`, `ipAddress`, `username` and `password`
 
 - `ipAddress` is the local IP address of the power detection unit (LAN対応ユニット) on your home network — check
   your router's connected-devices list, or the unit's own network settings.
 - `deviceId` is the unit's device ID / serial number (e.g. `17120385X`), used as the first parameter of the
   `getinfo.cgi` request. It is documented on the unit itself / its manual.
+- `username` / `password` are the unit's HTTP Basic authentication credentials — the same ones its built-in web
+  UI asks for (Panasonic units are frequently shipped with a user name such as `user` and an 8-digit password).
+  You can verify them from the Raspberry Pi with `curl`:
+
+  ```bash
+  curl -v --max-time 5 "http://192.168.1.105/getinfo.cgi?17120385X&0&0000&0000&IG0&ISI&IBI" -u "user:12345678"
+  ```
+
+  A `200 OK` with a body like `{20260830110304&256&17120385X&400.0&0.0&996.1}` means the credentials are correct.
+  Without `-u`, the same request just hangs / times out or returns `401 Unauthorized`.
 
 ## How it talks to the device
 
 Every `updateInterval` (5 seconds by default), the module's `node_helper.js` issues a plain HTTP GET request like:
 
 ```
-http://<ipAddress>/getinfo.cgi?<deviceId>&0&0000&0000&IG0&ISI&IBI
+GET http://<ipAddress>/getinfo.cgi?<deviceId>&0&0000&0000&IG0&ISI&IBI
+Authorization: Basic base64(<username>:<password>)
 ```
+
+(The `Authorization` header is generated automatically from the `username` / `password` options — it is the
+Node.js equivalent of `curl -u "user:password" ...`.)
 
 and parses a response such as:
 
@@ -160,8 +180,11 @@ footer) is intentionally hidden in `bar` positions because there simply isn't en
 This repo includes a mock device you can run locally:
 
 ```bash
-node demo/mock-device.js 9998
+node demo/mock-device.js 9998 user 12345678
 ```
+
+The mock device also enforces HTTP Basic authentication (defaults: `user` / `12345678`), so it behaves like the
+real hardware.
 
 Then point the module config at it:
 
@@ -169,19 +192,30 @@ Then point the module config at it:
 config: {
 	ipAddress: "127.0.0.1",
 	port: 9998,
-	deviceId: "17120385X"
+	deviceId: "17120385X",
+	username: "user",
+	password: "12345678"
 }
 ```
 
 You can also open `demo/preview.html` directly in a browser to see a static mock-up of all three layout variants
 without running MagicMirror at all.
 
+## Troubleshooting
+
+| Symptom | Cause / fix |
+| --- | --- |
+| `Connection timed out` / `ping` gets 100% packet loss | The device is not reachable at that IP (wrong IP, different VLAN/subnet, unit offline). Check the IP in your router's device list. Note that some units do **not** answer ICMP, so a failing `ping` alone is not conclusive — test with `curl` instead. |
+| Module shows *Authentication failed — check username / password* | The device answered `401`/`403`. Verify `username` / `password` with the `curl -u "user:password" ...` command above. |
+| Module shows *Please configure username and password* | `username` and/or `password` is missing from the module config. Both are required because the device uses Basic authentication. |
+| `Device returned an authentication page` | The unit replied with an HTML auth page instead of the `{...}` payload — again a credential problem. |
+
 ## Notes / Disclaimer
 
 - This module was built from a community-supplied description of the `getinfo.cgi` HTTP interface used by
   Panasonic energy-monitor power detection units (including VBPX274). It communicates only with the device on
-  your local network; it does not use any official Panasonic API, requires no account, and is not affiliated
-  with or endorsed by Panasonic.
+  your local network using the device's own HTTP Basic credentials; it does not use any official Panasonic API,
+  requires no cloud account, and is not affiliated with or endorsed by Panasonic.
 - Field/response layouts can vary slightly between firmware versions. If your unit responds differently, please
   open an issue with a sample response (with the device ID redacted) so the parsing logic can be adjusted.
 
