@@ -29,6 +29,11 @@ required in the config.
 - 📱 **Responsive layouts** — the component automatically adapts between the MagicMirror `bar` regions
   (`top_bar` / `bottom_bar`, wide & short) and `side`/`center` regions (`top_left`, `top_right`, `middle_center`,
   etc., narrower & taller). See [Positioning notes](#positioning-notes) below.
+- 🖥️ **Fullscreen "kiosk" dashboard** — with `fullscreen_above` / `fullscreen_below` the module switches to a
+  dedicated whole-screen layout in the style of the energy-visualisation panels found in shops and showrooms:
+  huge tabular numbers (up to ~270 px tall on Full HD), thick magnitude meters, a large self-sufficiency gauge
+  and a clock — all readable from across the room. See
+  [Fullscreen (kiosk) layout](#fullscreen-kiosk-layout) below.
 - 🌐 **i18n**: English and Japanese translations included.
 - 🛠 A **mock device server** (`demo/mock-device.js`) is included so you can develop/preview the module without
   real hardware.
@@ -37,6 +42,10 @@ required in the config.
 
 See [`docs/screenshot-preview.png`](docs/screenshot-preview.png) (generated from `demo/preview.html`, a static
 mock-up of the three layout variants).
+
+The fullscreen kiosk dashboard (`fullscreen_above` / `fullscreen_below`) at 1920×1080:
+
+![Fullscreen kiosk layout](docs/screenshot-fullscreen.png)
 
 ## Dependencies
 
@@ -98,6 +107,10 @@ Add the module to the `modules` array in your `config/config.js`:
 | `showSelfSufficiencyRing` | `Boolean` | `true` | Show the animated SSR donut ring in the home node. |
 | `showStatusBadge` | `Boolean` | `true` | Show the "selling / buying" status badge. |
 | `showLastUpdated` | `Boolean` | `true` | Show the last-successful-update timestamp. |
+| `fullscreenTitle` | `String` | `""` | Fullscreen layout only: overrides the header title (default: translated `DASHBOARD_TITLE`). |
+| `fullscreenSubtitle` | `String` | `""` | Fullscreen layout only: overrides the header subtitle (default: translated `DASHBOARD_SUBTITLE`). |
+| `showFullscreenClock` | `Boolean` | `true` | Fullscreen layout only: show the large clock in the header. |
+| `fullscreenScale` | `Number` | `1` | Fullscreen layout only: global size multiplier for every text/graph (e.g. `1.1` = 10 % larger, `0.9` = 10 % smaller). Handy for fine-tuning to your monitor & viewing distance. |
 | `currencySymbol` | `String` | `"¥"` | Currency symbol used for money values. |
 | `currencyLocale` | `String` | `"ja-JP"` | Locale used for `Number.toLocaleString` formatting. |
 | `decimalsRealtime` | `Number` | `1` | Decimal places for realtime W values. |
@@ -172,8 +185,60 @@ three CSS layouts:
 - **`--center`** (everything else, e.g. `top_center`, `middle_center`, `upper_third`, `lower_third`): a balanced
   horizontal layout with the most generous spacing — recommended if you have the room.
 
+- **`--fullscreen`** (used when position contains `"fullscreen"`, i.e. `fullscreen_above` / `fullscreen_below`):
+  the whole-screen kiosk dashboard described in the next section.
+
 You don't need to configure anything for this — just be aware that some information (e.g. the lifetime totals
 footer) is intentionally hidden in `bar` positions because there simply isn't enough vertical space.
+
+## Fullscreen (kiosk) layout
+
+Setting the module's `position` to `fullscreen_above` or `fullscreen_below` switches it to a dedicated
+whole-screen dashboard, designed like the power-generation visualisation panels you see in shops and
+showrooms: everything is sized to be read **from across the room**, not from arm's length.
+
+```js
+{
+	module: "MMM-HomePowerMonitor_forPanasonic",
+	position: "fullscreen_below",
+	config: {
+		ipAddress: "192.168.1.105",
+		deviceId: "17120385X",
+		username: "user",
+		password: "your-device-password"
+	}
+}
+```
+
+Layout, top to bottom:
+
+| Row | Contents |
+| --- | --- |
+| Header | Title / subtitle, live selling-or-buying badge, large clock |
+| Row 1 | Full-width flow band — **Solar → Home → Grid** as three big cards, each with the headline number, its unit and a thick magnitude meter; animated dot streams run between them |
+| Row 2 | Today's generation / sell / buy bars + sell-income, buy-cost and net-balance tiles, beside the large self-sufficiency gauge |
+| Footer | Lifetime totals and the last-updated timestamp |
+
+Design notes:
+
+- **Sized for Full HD.** All sizes are expressed in a single design unit
+  (`--hpm-fs-u = min(0.0520833vw, 0.0925926vh)`) that equals exactly `1px` on a 1920×1080 screen, so the panel
+  scales proportionally on smaller displays and on 4 K without any per-resolution tuning. On Full HD the
+  headline numbers render at roughly **200–270 px**, the magnitude meters are 42 px thick, today's bars 78 px
+  and the gauge ring ~280 px across.
+- **Numbers stay as large as their content allows.** Values switch from `W` to `kW` above 1 kW, and each card
+  computes its own width budget from the actual glyph advances of the value it is showing
+  (`_fsFitFactor`), so a short reading such as `610 W` is rendered noticeably larger than a long one such as
+  `23.46 kW` instead of every card being permanently shrunk to the worst case. Values can never overflow their
+  card.
+- **Adapts to the screen shape.** Short screens (≤ 800 px tall) trim chrome rather than the numbers; ultrawide
+  screens clamp the readout against the row height; portrait screens stack the flow band vertically and put the
+  gauge in a wide strip.
+- **Tunable.** Use `fullscreenScale` to scale the entire dashboard up or down for your monitor and viewing
+  distance, and `fullscreenTitle` / `fullscreenSubtitle` / `showFullscreenClock` to adjust the header.
+- Because a fullscreen region covers the entire mirror, the layout paints its own dark backdrop so the neon
+  accents keep their contrast. Bear in mind it will sit above (`fullscreen_above`) or below
+  (`fullscreen_below`) your other modules.
 
 ## Developing / previewing without hardware
 
@@ -200,6 +265,27 @@ config: {
 
 You can also open `demo/preview.html` directly in a browser to see a static mock-up of all three layout variants
 without running MagicMirror at all.
+
+### Previewing the fullscreen (kiosk) layout
+
+`demo/preview-fullscreen.html` renders the **real module code** (not a copy) with mock data inside an emulated
+`fullscreen_below` region, so the kiosk layout can be reviewed exactly as MagicMirror would draw it. It needs to
+be served over HTTP (it `fetch`es the translation files):
+
+```bash
+python3 -m http.server 8099
+# then open http://localhost:8099/demo/preview-fullscreen.html
+```
+
+The small toolbar in the bottom-right corner toggles between selling / buying and English / Japanese.
+
+Two optional dev helpers (require `npm i -D playwright && npx playwright install chromium`) check the layout at
+real resolutions:
+
+```bash
+node demo/shoot.mjs    # screenshots 1920x1080 / 1280x720 / 2560x1080 / 1080x1920 + reports any clipping
+node demo/measure.mjs  # dumps the measured row heights, graph sizes and font sizes as JSON
+```
 
 ## Troubleshooting
 

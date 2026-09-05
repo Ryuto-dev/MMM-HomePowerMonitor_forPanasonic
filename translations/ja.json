@@ -18,5 +18,7 @@
 	"SELL_AMOUNT": "売電金額",
 	"BUY_AMOUNT": "買電金額",
 	"NET_BALANCE": "収支",
-	"LIFETIME": "累計"
+	"LIFETIME": "累計",
+	"DASHBOARD_TITLE": "エネルギーモニター",
+	"DASHBOARD_SUBTITLE": "太陽光発電 / 電力の流れ"
 }

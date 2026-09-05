@@ -604,3 +604,918 @@
 .mmm-hpm--center .mmm-hpm__flow {
 	gap: 8px;
 }
+
+/* ==================================================================== */
+/* FULLSCREEN ("kiosk") LAYOUT                                          */
+/* position: fullscreen_above / fullscreen_below                         */
+/*                                                                       */
+/* Tuned for a Full-HD (1920x1080) monitor that is read from a distance, */
+/* like the energy-visualisation panels seen in shops and showrooms:     */
+/* very large tabular numbers, thick bars, a big gauge — while keeping   */
+/* the modern glass/neon look of the compact layouts.                    */
+/*                                                                       */
+/* Layout (top to bottom):                                               */
+/*   header                                                              */
+/*   row 1  full-width flow band: solar -> home -> grid (the big numbers)*/
+/*   row 2  today's energy bars + money tiles | self-sufficiency gauge   */
+/*   footer lifetime totals + last-updated                              */
+/* ==================================================================== */
+
+.mmm-hpm--fullscreen {
+	/* Every size below is written as `calc(<design-px> * var(--hpm-fs-u))`.
+	   `--hpm-fs-u` is one "design pixel" expressed as a real length, so the
+	   whole dashboard scales with the viewport (and with
+	   config.fullscreenScale) instead of inheriting MagicMirror's small base
+	   font size. It equals exactly 1px on a 1920x1080 (Full HD) screen,
+	   shrinks on smaller displays and grows on 4K. */
+	--hpm-fs-scale: 1;
+	--hpm-fs-u: calc(var(--hpm-fs-scale) * min(0.0520833vw, 0.0925926vh));
+
+	position: absolute;
+	inset: 0;
+	width: 100vw;
+	height: 100vh;
+	max-width: none;
+	padding: calc(26 * var(--hpm-fs-u)) calc(38 * var(--hpm-fs-u)) calc(20 * var(--hpm-fs-u));
+	display: flex;
+	flex-direction: column;
+	gap: calc(18 * var(--hpm-fs-u));
+	overflow: hidden;
+	color: #f4f7fb;
+	/* Fullscreen regions are transparent by default — give the kiosk view a
+	   subtle depth backdrop so the neon accents read well from far away. */
+	background:
+		radial-gradient(120% 90% at 12% -10%, rgba(255, 209, 102, 0.1), transparent 60%),
+		radial-gradient(110% 90% at 88% 110%, rgba(76, 201, 240, 0.12), transparent 62%),
+		#04070d;
+	text-align: left;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.1;
+}
+
+/* Loading / error states: readable from across the room too. */
+.mmm-hpm--fullscreen .mmm-hpm__loading,
+.mmm-hpm--fullscreen .mmm-hpm__error {
+	margin: auto;
+	font-size: calc(38 * var(--hpm-fs-u));
+	opacity: 0.85;
+}
+
+.mmm-hpm--fullscreen .mmm-hpm__spinner {
+	width: calc(44 * var(--hpm-fs-u));
+	height: calc(44 * var(--hpm-fs-u));
+	border-width: calc(5 * var(--hpm-fs-u));
+}
+
+/* ---------------------------- header ------------------------------- */
+
+.mmm-hpm__fs-header {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: calc(24 * var(--hpm-fs-u));
+	padding-bottom: calc(14 * var(--hpm-fs-u));
+	border-bottom: calc(2 * var(--hpm-fs-u)) solid rgba(255, 255, 255, 0.14);
+	flex: 0 0 auto;
+}
+
+.mmm-hpm__fs-title {
+	font-size: calc(52 * var(--hpm-fs-u));
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	line-height: 1.05;
+	white-space: nowrap;
+}
+
+.mmm-hpm__fs-subtitle {
+	margin-top: calc(4 * var(--hpm-fs-u));
+	font-size: calc(21 * var(--hpm-fs-u));
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	opacity: 0.5;
+	white-space: nowrap;
+}
+
+.mmm-hpm__fs-header-right {
+	display: flex;
+	align-items: center;
+	gap: calc(26 * var(--hpm-fs-u));
+	flex: 0 0 auto;
+}
+
+.mmm-hpm__fs-clock {
+	font-size: calc(68 * var(--hpm-fs-u));
+	font-weight: 300;
+	letter-spacing: 0.02em;
+	line-height: 1;
+	opacity: 0.9;
+}
+
+/* Status badge — scaled up for the kiosk view. */
+.mmm-hpm--fullscreen .mmm-hpm__status-badge {
+	margin: 0;
+	gap: calc(12 * var(--hpm-fs-u));
+	padding: calc(12 * var(--hpm-fs-u)) calc(30 * var(--hpm-fs-u));
+	border-radius: calc(999 * var(--hpm-fs-u));
+	border-width: calc(3 * var(--hpm-fs-u));
+	font-size: calc(34 * var(--hpm-fs-u));
+	letter-spacing: 0.1em;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.mmm-hpm--fullscreen .mmm-hpm__status-dot {
+	width: calc(18 * var(--hpm-fs-u));
+	height: calc(18 * var(--hpm-fs-u));
+	box-shadow: 0 0 calc(18 * var(--hpm-fs-u)) currentColor;
+}
+
+/* ------------------------ row 1: flow band ------------------------- */
+
+/* The flow band owns the full width of the screen: with nothing beside it
+   the three readouts can grow to their full design size. */
+.mmm-hpm__fs-main {
+	flex: 1 1 auto;
+	min-height: 0;
+	display: flex;
+}
+
+.mmm-hpm__fs-band {
+	flex: 1 1 auto;
+	display: grid;
+	grid-template-columns:
+		minmax(0, 1fr) calc(104 * var(--hpm-fs-u))
+		minmax(0, 1fr) calc(104 * var(--hpm-fs-u))
+		minmax(0, 1fr);
+	align-items: stretch;
+	gap: calc(6 * var(--hpm-fs-u));
+	min-height: 0;
+	min-width: 0;
+}
+
+/* ------------------------------ cards ------------------------------ */
+
+.mmm-hpm__fs-card {
+	--hpm-accent: #4cc9f0;
+	/* Width budget for the big readout, in cqw units. Set per card from JS
+	   (_fsFitFactor) so short values render larger than long ones. */
+	--hpm-fit: 55;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	/* Head at the top, big readout in the middle, meter at the bottom: the
+	   card fills its full height instead of leaving dead space above and
+	   below a centred block. */
+	justify-content: space-between;
+	align-items: center;
+	gap: calc(14 * var(--hpm-fs-u));
+	padding: calc(30 * var(--hpm-fs-u)) calc(16 * var(--hpm-fs-u)) calc(34 * var(--hpm-fs-u));
+	border-radius: calc(28 * var(--hpm-fs-u));
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+	border: calc(2 * var(--hpm-fs-u)) solid rgba(255, 255, 255, 0.1);
+	box-shadow:
+		0 calc(20 * var(--hpm-fs-u)) calc(50 * var(--hpm-fs-u)) rgba(0, 0, 0, 0.45),
+		inset 0 0 calc(70 * var(--hpm-fs-u)) rgba(255, 255, 255, 0.03);
+	overflow: hidden;
+	min-width: 0;
+	/* Lets the big readout size itself against the *card* width, so long
+	   values (e.g. "1.42 kW") never clip or spill outside the card. */
+	container-type: inline-size;
+}
+
+/* Accent glow at the top edge of each card. */
+.mmm-hpm__fs-card::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: calc(6 * var(--hpm-fs-u));
+	background: var(--hpm-accent);
+	box-shadow: 0 0 calc(28 * var(--hpm-fs-u)) var(--hpm-accent);
+}
+
+.mmm-hpm__fs-card-head {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: calc(14 * var(--hpm-fs-u));
+	min-width: 0;
+	max-width: 100%;
+}
+
+.mmm-hpm__fs-card-icon {
+	font-size: calc(62 * var(--hpm-fs-u));
+	line-height: 1;
+	filter: drop-shadow(0 0 calc(14 * var(--hpm-fs-u)) rgba(255, 255, 255, 0.25));
+	animation: hpm-pulse 3s ease-in-out infinite;
+	flex: 0 0 auto;
+}
+
+.mmm-hpm__fs-card-label {
+	font-size: calc(46 * var(--hpm-fs-u)); /* fallback for engines without cqw */
+	font-size: min(calc(46 * var(--hpm-fs-u)), 12cqw);
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	color: var(--hpm-accent);
+	white-space: nowrap;
+}
+
+/* The big readout — the whole point of the kiosk layout. */
+.mmm-hpm__fs-readout {
+	/* Takes all the space left between the head and the meter, and centres
+	   the number inside it. `flex-wrap: wrap` + `align-content: center`
+	   vertically centres the single line, while `align-items: baseline`
+	   keeps the unit ("kW") sitting on the value's baseline. */
+	flex: 1 1 auto;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	align-content: center;
+	justify-content: center;
+	gap: calc(10 * var(--hpm-fs-u));
+	min-width: 0;
+	min-height: 0;
+	max-width: 100%;
+}
+
+.mmm-hpm__fs-value {
+	/* Grow to the design ceiling, but never wider than the card: --hpm-fit is
+	   computed from the value's real glyph advances (see _fsFitFactor), so
+	   "610" is rendered far larger than "10.00" instead of every card
+	   shrinking to the worst case.
+	   The ceiling is set by the row height: the readout area is ~278px tall on
+	   a Full-HD panel and `line-height: 0.86` makes the line box 0.86em, so
+	   268px is the largest value that still cannot touch the meter below. */
+	font-size: calc(168 * var(--hpm-fs-u)); /* fallback for engines without cqw */
+	font-size: min(calc(268 * var(--hpm-fs-u)), calc(var(--hpm-fit) * 1cqw));
+	font-weight: 700;
+	line-height: 0.86;
+	letter-spacing: -0.02em;
+	color: #fff;
+	text-shadow:
+		0 0 calc(34 * var(--hpm-fs-u)) rgba(255, 255, 255, 0.28),
+		0 0 calc(30 * var(--hpm-fs-u)) var(--hpm-accent);
+	transition: color 0.4s ease;
+}
+
+/* The unit rides along with the value (0.34x of it) so the pair always keeps
+   its proportions, whatever size the value ended up at. */
+.mmm-hpm__fs-unit {
+	font-size: calc(56 * var(--hpm-fs-u)); /* fallback for engines without cqw */
+	font-size: min(calc(90 * var(--hpm-fs-u)), calc(var(--hpm-fit) * 0.34cqw));
+	font-weight: 600;
+	line-height: 1;
+	color: var(--hpm-accent);
+	opacity: 0.95;
+}
+
+/* Magnitude meter — gives the big number an instantly readable "how much
+   of the scale is this" cue, and fills the card body nicely. */
+.mmm-hpm__fs-meter {
+	/* Full card width (minus the padding) and clearly thick: at a distance the
+	   meter is read as a level indicator, so a thin hairline would be lost. */
+	width: 100%;
+	height: calc(42 * var(--hpm-fs-u));
+	margin-top: calc(6 * var(--hpm-fs-u));
+	border-radius: calc(21 * var(--hpm-fs-u));
+	background: rgba(255, 255, 255, 0.07);
+	box-shadow: inset 0 0 calc(12 * var(--hpm-fs-u)) rgba(0, 0, 0, 0.55);
+	overflow: hidden;
+	flex: 0 0 auto;
+}
+
+.mmm-hpm__fs-meter-fill {
+	height: 100%;
+	min-width: calc(42 * var(--hpm-fs-u));
+	border-radius: calc(21 * var(--hpm-fs-u));
+	background: var(--hpm-accent);
+	box-shadow: 0 0 calc(24 * var(--hpm-fs-u)) var(--hpm-accent);
+	transition: width 1s ease;
+}
+
+/* Thick accent underline at the bottom of each card. */
+.mmm-hpm__fs-card-bar {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: calc(10 * var(--hpm-fs-u));
+	background: linear-gradient(90deg, transparent, var(--hpm-accent), transparent);
+	opacity: 0.75;
+}
+
+/* --------------------------- connectors ---------------------------- */
+
+.mmm-hpm__fs-connector {
+	align-self: center;
+	flex: 0 0 auto;
+	min-width: 0;
+	width: 100%;
+	height: calc(38 * var(--hpm-fs-u));
+}
+
+.mmm-hpm--fullscreen .mmm-hpm__fs-connector .mmm-hpm__line-track {
+	height: calc(38 * var(--hpm-fs-u));
+	border-radius: calc(19 * var(--hpm-fs-u));
+	background: rgba(255, 255, 255, 0.07);
+	box-shadow: inset 0 0 calc(10 * var(--hpm-fs-u)) rgba(0, 0, 0, 0.5);
+}
+
+.mmm-hpm--fullscreen .mmm-hpm__fs-connector .mmm-hpm__dot {
+	width: calc(46 * var(--hpm-fs-u));
+	height: calc(46 * var(--hpm-fs-u));
+	margin-top: calc(-23 * var(--hpm-fs-u));
+	background: rgba(255, 255, 255, 0.3);
+	box-shadow: 0 0 calc(22 * var(--hpm-fs-u)) calc(7 * var(--hpm-fs-u)) rgba(255, 255, 255, 0.18);
+}
+
+.mmm-hpm--fullscreen .mmm-hpm__fs-connector.mmm-hpm__line--solar-home.mmm-hpm__line--active .mmm-hpm__dot {
+	box-shadow: 0 0 calc(26 * var(--hpm-fs-u)) calc(8 * var(--hpm-fs-u)) rgba(255, 209, 102, 0.65);
+}
+
+.mmm-hpm--fullscreen .mmm-hpm__fs-connector.mmm-hpm__line--home-grid.mmm-hpm__line--active:not(.mmm-hpm__line--reverse) .mmm-hpm__dot {
+	box-shadow: 0 0 calc(26 * var(--hpm-fs-u)) calc(8 * var(--hpm-fs-u)) rgba(6, 214, 160, 0.65);
+}
+
+.mmm-hpm--fullscreen .mmm-hpm__fs-connector.mmm-hpm__line--home-grid.mmm-hpm__line--active.mmm-hpm__line--reverse .mmm-hpm__dot {
+	box-shadow: 0 0 calc(26 * var(--hpm-fs-u)) calc(8 * var(--hpm-fs-u)) rgba(239, 71, 111, 0.65);
+}
+
+/* Idle (no power) connectors stay visible but dim. */
+.mmm-hpm--fullscreen .mmm-hpm__fs-connector:not(.mmm-hpm__line--active) .mmm-hpm__line-track {
+	opacity: 0.4;
+}
+
+/* --------------------- row 2: today + gauge ------------------------ */
+
+/* Row 2 gets a fixed share of the height (~36%) so row 1's readouts and the
+   bars/gauge below stay in a deliberate proportion instead of one of them
+   absorbing all the leftover space. */
+.mmm-hpm__fs-lower {
+	flex: 0 0 auto;
+	height: 36%;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) calc(430 * var(--hpm-fs-u));
+	gap: calc(18 * var(--hpm-fs-u));
+	align-items: stretch;
+	min-height: 0;
+}
+
+/* When one of the two panels is disabled, the other takes the whole row. */
+.mmm-hpm__fs-lower--no-gauge,
+.mmm-hpm__fs-lower--no-daily {
+	grid-template-columns: minmax(0, 1fr);
+}
+
+/* Both lower panels disabled: keep the band centred at a card aspect that
+   still suits the readout, instead of stretching it over the whole screen
+   (which just pads each number with dead space). */
+.mmm-hpm--fs-band-only .mmm-hpm__fs-main {
+	align-items: center;
+}
+
+.mmm-hpm--fs-band-only .mmm-hpm__fs-band {
+	max-height: calc(560 * var(--hpm-fs-u));
+}
+
+/* ------------------------- gauge (SSR) ----------------------------- */
+
+/* Label above, ring below: stacking them lets the ring use the *full* width of
+   its column (~370px on Full HD) instead of sharing it with the label, which
+   made the gauge the smallest graphic on the panel. */
+.mmm-hpm__fs-card--gauge {
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: center;
+	gap: calc(10 * var(--hpm-fs-u));
+	padding: calc(16 * var(--hpm-fs-u)) calc(24 * var(--hpm-fs-u)) calc(22 * var(--hpm-fs-u));
+	border-radius: calc(24 * var(--hpm-fs-u));
+}
+
+.mmm-hpm__fs-card--gauge .mmm-hpm__fs-card-head {
+	flex: 0 0 auto;
+	justify-content: center;
+}
+
+.mmm-hpm__fs-card--gauge .mmm-hpm__fs-card-label {
+	font-size: calc(38 * var(--hpm-fs-u));
+	white-space: nowrap;
+	line-height: 1.15;
+}
+
+.mmm-hpm__fs-gauge {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	/* Square, and as large as the shorter of the two axes allows. */
+	flex: 1 1 auto;
+	min-height: 0;
+	height: 100%;
+	aspect-ratio: 1;
+	max-width: 100%;
+}
+
+.mmm-hpm__fs-gauge-svg {
+	width: 100%;
+	height: 100%;
+}
+
+.mmm-hpm__fs-gauge-bg {
+	fill: none;
+	stroke: rgba(255, 255, 255, 0.09);
+	stroke-width: 30;
+}
+
+/* Thick, glowing progress arc — the ring must read as a "gauge" from far
+   away, not as a hairline. */
+.mmm-hpm__fs-gauge-fg {
+	fill: none;
+	stroke: var(--hpm-accent);
+	stroke-width: 30;
+	stroke-linecap: round;
+	filter: drop-shadow(0 0 12px var(--hpm-accent));
+	transition: stroke-dashoffset 1s ease;
+}
+
+.mmm-hpm__fs-gauge-text {
+	position: absolute;
+	display: flex;
+	align-items: baseline;
+	justify-content: center;
+}
+
+.mmm-hpm__fs-gauge-pct {
+	font-size: calc(104 * var(--hpm-fs-u));
+	font-weight: 700;
+	line-height: 1;
+	color: #fff;
+	text-shadow: 0 0 calc(26 * var(--hpm-fs-u)) var(--hpm-accent);
+}
+
+.mmm-hpm__fs-gauge-pct small {
+	font-size: calc(44 * var(--hpm-fs-u));
+	font-weight: 600;
+	color: var(--hpm-accent);
+	margin-left: calc(3 * var(--hpm-fs-u));
+}
+
+/* --------------------------- today panel --------------------------- */
+
+.mmm-hpm__fs-daily {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	padding: calc(16 * var(--hpm-fs-u)) calc(26 * var(--hpm-fs-u)) calc(20 * var(--hpm-fs-u));
+	border-radius: calc(24 * var(--hpm-fs-u));
+	background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015));
+	border: calc(2 * var(--hpm-fs-u)) solid rgba(255, 255, 255, 0.09);
+}
+
+.mmm-hpm__fs-section-head {
+	display: flex;
+	align-items: center;
+	gap: calc(16 * var(--hpm-fs-u));
+	margin-bottom: calc(12 * var(--hpm-fs-u));
+	flex: 0 0 auto;
+}
+
+.mmm-hpm__fs-section-title {
+	font-size: calc(34 * var(--hpm-fs-u));
+	font-weight: 700;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	opacity: 0.7;
+	white-space: nowrap;
+}
+
+.mmm-hpm__fs-section-head::after {
+	content: "";
+	flex: 1 1 auto;
+	height: calc(2 * var(--hpm-fs-u));
+	background: rgba(255, 255, 255, 0.12);
+}
+
+.mmm-hpm__fs-daily-body {
+	flex: 1 1 auto;
+	display: grid;
+	grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+	gap: calc(26 * var(--hpm-fs-u));
+	/* Both halves fill the panel's height — no dead space under the tiles. */
+	align-items: stretch;
+	min-height: 0;
+}
+
+/* The three bar rows share the panel height evenly, so the bars grow to fill
+   it instead of sitting as a small centred block with dead space around. */
+.mmm-hpm__fs-bars {
+	display: grid;
+	grid-template-rows: repeat(3, minmax(0, 1fr));
+	gap: calc(16 * var(--hpm-fs-u));
+	min-width: 0;
+	min-height: 0;
+}
+
+.mmm-hpm__fs-bar-row {
+	display: grid;
+	grid-template-columns: calc(122 * var(--hpm-fs-u)) minmax(0, 1fr) calc(258 * var(--hpm-fs-u));
+	align-items: center;
+	gap: calc(18 * var(--hpm-fs-u));
+	min-height: 0;
+}
+
+.mmm-hpm__fs-bar-label {
+	font-size: calc(40 * var(--hpm-fs-u));
+	font-weight: 700;
+	opacity: 0.9;
+	white-space: nowrap;
+}
+
+/* Thick bars — clearly readable from across a room. They stretch to the row
+   height (capped so they stay bars, not blocks). */
+.mmm-hpm__fs-bar-track {
+	height: 100%;
+	max-height: calc(78 * var(--hpm-fs-u));
+	min-height: calc(46 * var(--hpm-fs-u));
+	border-radius: calc(999 * var(--hpm-fs-u));
+	background: rgba(255, 255, 255, 0.07);
+	box-shadow: inset 0 0 calc(12 * var(--hpm-fs-u)) rgba(0, 0, 0, 0.5);
+	overflow: hidden;
+}
+
+.mmm-hpm__fs-bar-fill {
+	--hpm-accent: #4cc9f0;
+	height: 100%;
+	min-width: calc(46 * var(--hpm-fs-u));
+	border-radius: calc(999 * var(--hpm-fs-u));
+	background: var(--hpm-accent);
+	box-shadow: 0 0 calc(24 * var(--hpm-fs-u)) var(--hpm-accent);
+	transition: width 1s ease;
+}
+
+.mmm-hpm__fs-bar-value {
+	text-align: right;
+	font-size: calc(62 * var(--hpm-fs-u));
+	font-weight: 700;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+.mmm-hpm__fs-bar-value small {
+	font-size: calc(30 * var(--hpm-fs-u));
+	font-weight: 500;
+	opacity: 0.65;
+}
+
+/* Money tiles — one row per tile so they line up with the three bars on the
+   left instead of being three tall, half-empty columns. */
+.mmm-hpm__fs-money {
+	display: grid;
+	grid-template-rows: repeat(3, minmax(0, 1fr));
+	gap: calc(14 * var(--hpm-fs-u));
+	min-width: 0;
+	min-height: 0;
+}
+
+.mmm-hpm__fs-money-tile {
+	--hpm-accent: #4cc9f0;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: calc(14 * var(--hpm-fs-u));
+	padding: calc(6 * var(--hpm-fs-u)) calc(24 * var(--hpm-fs-u));
+	border-radius: calc(16 * var(--hpm-fs-u));
+	background: rgba(255, 255, 255, 0.035);
+	border-left: calc(11 * var(--hpm-fs-u)) solid var(--hpm-accent);
+	min-width: 0;
+	min-height: 0;
+	container-type: inline-size;
+}
+
+.mmm-hpm__fs-money-label {
+	font-size: calc(32 * var(--hpm-fs-u));
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	opacity: 0.7;
+	white-space: nowrap;
+}
+
+.mmm-hpm__fs-money-value {
+	font-size: calc(64 * var(--hpm-fs-u)); /* fallback for engines without cqw */
+	font-size: min(calc(64 * var(--hpm-fs-u)), 34cqw);
+	font-weight: 700;
+	line-height: 1;
+	color: var(--hpm-accent);
+	white-space: nowrap;
+}
+
+/* ----------------------------- footer ------------------------------ */
+
+.mmm-hpm__fs-footer {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: calc(24 * var(--hpm-fs-u));
+	padding-top: calc(12 * var(--hpm-fs-u));
+	border-top: calc(2 * var(--hpm-fs-u)) solid rgba(255, 255, 255, 0.12);
+}
+
+.mmm-hpm__fs-totals {
+	display: flex;
+	flex-wrap: wrap;
+	gap: calc(44 * var(--hpm-fs-u));
+	min-width: 0;
+}
+
+.mmm-hpm__fs-total-item {
+	display: flex;
+	align-items: baseline;
+	gap: calc(12 * var(--hpm-fs-u));
+	white-space: nowrap;
+}
+
+.mmm-hpm__fs-total-item em {
+	font-style: normal;
+	font-size: calc(28 * var(--hpm-fs-u));
+	letter-spacing: 0.06em;
+	opacity: 0.6;
+}
+
+.mmm-hpm__fs-total-item b {
+	font-size: calc(46 * var(--hpm-fs-u));
+	font-weight: 700;
+	line-height: 1;
+}
+
+.mmm-hpm__fs-total-item b small {
+	font-size: calc(24 * var(--hpm-fs-u));
+	font-weight: 500;
+	opacity: 0.6;
+}
+
+.mmm-hpm--fullscreen .mmm-hpm__meta {
+	margin: 0;
+	font-size: calc(26 * var(--hpm-fs-u));
+	gap: calc(10 * var(--hpm-fs-u));
+	opacity: 0.65;
+	white-space: nowrap;
+	flex: 0 0 auto;
+}
+
+.mmm-hpm--fullscreen .mmm-hpm__meta-dot {
+	width: calc(15 * var(--hpm-fs-u));
+	height: calc(15 * var(--hpm-fs-u));
+	box-shadow: 0 0 calc(15 * var(--hpm-fs-u)) rgba(6, 214, 160, 0.8);
+}
+
+/* ------------------------------------------------------------------- */
+/* Adaptive tweaks                                                     */
+/* ------------------------------------------------------------------- */
+
+/* --- short screens (e.g. 1920x900, 1366x768): reclaim vertical space by
+       trimming the chrome rather than the numbers. --------------------- */
+@media (max-height: 800px) {
+	.mmm-hpm--fullscreen {
+		gap: calc(14 * var(--hpm-fs-u));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-subtitle {
+		display: none;
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-bars {
+		gap: calc(10 * var(--hpm-fs-u));
+	}
+}
+
+/* --- very wide / short screens (e.g. ultrawide 2560x1080) ----------- */
+@media (min-aspect-ratio: 2 / 1) {
+	/* Cards get very wide here, so the cqw budget alone would blow the
+	   readout up past the row height — clamp it against the design ceiling. */
+	.mmm-hpm--fullscreen .mmm-hpm__fs-value {
+		font-size: min(calc(228 * var(--hpm-fs-u)), calc(var(--hpm-fit) * 1cqw));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-unit {
+		font-size: min(calc(78 * var(--hpm-fs-u)), calc(var(--hpm-fit) * 0.34cqw));
+	}
+}
+
+/* --- portrait / very narrow: stack the flow band vertically --------- */
+/* In portrait `--hpm-fs-u` is driven by the (narrow) width, so it becomes much
+   smaller than in landscape while the rows get *taller*. Every ceiling below
+   is therefore raised in u-terms — otherwise the panel would render tiny
+   numbers in the middle of a lot of empty space. */
+@media (max-aspect-ratio: 1 / 1) {
+	/* Solar -> home -> grid stacks top-to-bottom, with the connectors
+	   becoming short vertical segments between the cards. */
+	.mmm-hpm__fs-band {
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-rows:
+			minmax(0, 1fr) calc(64 * var(--hpm-fs-u))
+			minmax(0, 1fr) calc(64 * var(--hpm-fs-u))
+			minmax(0, 1fr);
+	}
+
+	/* Each card becomes a wide row: label on the left, big readout on the
+	   right, magnitude meter as a full-width line underneath. */
+	.mmm-hpm--fullscreen .mmm-hpm__fs-card {
+		flex-direction: row;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		align-items: center;
+		align-content: center;
+		gap: calc(12 * var(--hpm-fs-u)) calc(20 * var(--hpm-fs-u));
+		padding: calc(16 * var(--hpm-fs-u)) calc(26 * var(--hpm-fs-u)) calc(20 * var(--hpm-fs-u));
+	}
+
+	/* Label and readout share one line and both stay vertically centred. */
+	.mmm-hpm--fullscreen .mmm-hpm__fs-card-head {
+		flex: 0 0 auto;
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-readout {
+		flex: 1 1 auto;
+		justify-content: flex-end;
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-value {
+		font-size: min(calc(360 * var(--hpm-fs-u)), calc(var(--hpm-fit) * 0.60cqw));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-unit {
+		font-size: min(calc(120 * var(--hpm-fs-u)), calc(var(--hpm-fit) * 0.20cqw));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-card-label {
+		font-size: calc(78 * var(--hpm-fs-u));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-card-icon {
+		font-size: calc(88 * var(--hpm-fs-u));
+	}
+
+	/* Meter spans the full card width on its own line. */
+	.mmm-hpm--fullscreen .mmm-hpm__fs-meter {
+		order: 3;
+		width: 100%;
+		height: calc(56 * var(--hpm-fs-u));
+		max-height: none;
+		border-radius: calc(999 * var(--hpm-fs-u));
+		margin-top: 0;
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-meter-fill {
+		min-width: calc(56 * var(--hpm-fs-u));
+		border-radius: calc(999 * var(--hpm-fs-u));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-connector,
+	.mmm-hpm--fullscreen .mmm-hpm__fs-connector .mmm-hpm__line-track {
+		width: calc(56 * var(--hpm-fs-u));
+		height: 100%;
+		margin: 0 auto;
+	}
+
+	/* Vertical dot travel (same approach as the `--side` layout). */
+	.mmm-hpm--fullscreen .mmm-hpm__fs-connector .mmm-hpm__dot {
+		left: 50%;
+		top: -10%;
+		width: calc(72 * var(--hpm-fs-u));
+		height: calc(72 * var(--hpm-fs-u));
+		margin-left: calc(-36 * var(--hpm-fs-u));
+		margin-top: 0;
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-connector.mmm-hpm__line--active .mmm-hpm__dot {
+		animation-name: hpm-flow-down;
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-connector.mmm-hpm__line--active.mmm-hpm__line--reverse .mmm-hpm__dot {
+		animation-name: hpm-flow-up;
+	}
+
+	/* Row 2 stacks: today's panel above a wide gauge strip. The strip is tall
+	   enough for the ring to stay a *graph* (~230px on a 1080x1920 panel)
+	   rather than the token circle a short strip would allow. */
+	.mmm-hpm__fs-lower {
+		height: 46%;
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-rows: minmax(0, 1fr) calc(420 * var(--hpm-fs-u));
+		gap: calc(14 * var(--hpm-fs-u));
+	}
+
+	/* Bars above the money tiles, each half taking what it needs. */
+	.mmm-hpm__fs-daily-body {
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+		gap: calc(20 * var(--hpm-fs-u));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-bar-row {
+		grid-template-columns: calc(150 * var(--hpm-fs-u)) minmax(0, 1fr) calc(320 * var(--hpm-fs-u));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-bar-track {
+		max-height: calc(96 * var(--hpm-fs-u));
+		min-height: calc(56 * var(--hpm-fs-u));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-bar-label {
+		font-size: calc(52 * var(--hpm-fs-u));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-bar-value {
+		font-size: calc(78 * var(--hpm-fs-u));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-bar-value small {
+		font-size: calc(38 * var(--hpm-fs-u));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-money-label {
+		font-size: calc(42 * var(--hpm-fs-u));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-money-value {
+		font-size: min(calc(84 * var(--hpm-fs-u)), 34cqw);
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-section-title {
+		font-size: calc(44 * var(--hpm-fs-u));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-title {
+		font-size: calc(66 * var(--hpm-fs-u));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-clock {
+		font-size: calc(84 * var(--hpm-fs-u));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__status-badge {
+		font-size: calc(44 * var(--hpm-fs-u));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-total-item b {
+		font-size: calc(56 * var(--hpm-fs-u));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-total-item em {
+		font-size: calc(34 * var(--hpm-fs-u));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__meta {
+		font-size: calc(34 * var(--hpm-fs-u));
+	}
+
+	/* The gauge strip is wide and short here, so the label goes back *beside*
+	   the ring (side by side) rather than above it. */
+	.mmm-hpm--fullscreen .mmm-hpm__fs-card--gauge {
+		flex-direction: row;
+		justify-content: center;
+		align-items: center;
+		gap: calc(34 * var(--hpm-fs-u));
+		padding: calc(14 * var(--hpm-fs-u)) calc(26 * var(--hpm-fs-u));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-card--gauge .mmm-hpm__fs-card-head {
+		align-items: center;
+	}
+
+	/* Square and as tall as the strip allows — no longer a token hairline. */
+	.mmm-hpm--fullscreen .mmm-hpm__fs-gauge {
+		flex: 0 0 auto;
+		height: 100%;
+		width: auto;
+		max-width: 50%;
+	}
+
+	/* The percentage rides inside the (now large) ring, so it can be sized
+	   like the other headline numbers instead of a caption. */
+	.mmm-hpm--fullscreen .mmm-hpm__fs-gauge-pct {
+		font-size: calc(150 * var(--hpm-fs-u));
+	}
+
+	.mmm-hpm--fullscreen .mmm-hpm__fs-gauge-pct small {
+		font-size: calc(64 * var(--hpm-fs-u));
+	}
+
+	.mmm-hpm__fs-footer {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: calc(8 * var(--hpm-fs-u));
+	}
+}
+
+/* Respect reduced-motion preferences. */
+@media (prefers-reduced-motion: reduce) {
+	.mmm-hpm--fullscreen .mmm-hpm__dot,
+	.mmm-hpm--fullscreen .mmm-hpm__fs-card-icon,
+	.mmm-hpm--fullscreen .mmm-hpm__status-dot {
+		animation: none;
+	}
+}

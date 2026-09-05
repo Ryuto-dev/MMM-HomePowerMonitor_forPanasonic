@@ -18,5 +18,7 @@
 	"SELL_AMOUNT": "Sell income",
 	"BUY_AMOUNT": "Buy cost",
 	"NET_BALANCE": "Net",
-	"LIFETIME": "Lifetime"
+	"LIFETIME": "Lifetime",
+	"DASHBOARD_TITLE": "Energy Monitor",
+	"DASHBOARD_SUBTITLE": "Solar generation / power flow"
 }
