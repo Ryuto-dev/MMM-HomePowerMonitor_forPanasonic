@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MMM-HomePowerMonitor_forPanasonic — fullscreen preview</title>
+<link rel="stylesheet" href="../MMM-HomePowerMonitor_forPanasonic.css" />
+<style>
+	html, body {
+		margin: 0;
+		padding: 0;
+		width: 100%;
+		height: 100%;
+		background: #000;
+		color: #eee;
+		font-family: "Roboto Condensed", "Noto Sans JP", Arial, sans-serif;
+		overflow: hidden;
+	}
+
+	/* MagicMirror's fullscreen regions are absolutely positioned containers
+	   covering the whole viewport — emulate that here. */
+	.region.fullscreen.below {
+		position: absolute;
+		inset: 0;
+	}
+
+	/* Small dev toolbar (preview only, not part of the module). */
+	#toolbar {
+		position: fixed;
+		z-index: 99;
+		right: 12px;
+		bottom: 12px;
+		display: flex;
+		gap: 8px;
+		align-items: center;
+		padding: 6px 10px;
+		border-radius: 999px;
+		background: rgba(0, 0, 0, 0.6);
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		font-size: 12px;
+		opacity: 0.25;
+		transition: opacity 0.2s ease;
+	}
+
+	#toolbar:hover { opacity: 1; }
+	#toolbar button {
+		background: rgba(255, 255, 255, 0.1);
+		color: #eee;
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		border-radius: 999px;
+		padding: 4px 10px;
+		cursor: pointer;
+		font: inherit;
+	}
+</style>
+</head>
+<body>
+
+<div class="region fullscreen below"><div class="container" id="hpm-root"></div></div>
+
+<div id="toolbar">
+	<button id="btn-toggle">売電 / 買電 切替</button>
+	<button id="btn-lang">EN / JA</button>
+	<span id="hint">fullscreen_below preview</span>
+</div>
+
+<script>
+/*
+ * Minimal MagicMirror² shim so this preview renders the *real* module code
+ * (MMM-HomePowerMonitor_forPanasonic.js) with mock data. This keeps the
+ * preview from drifting away from the actual implementation.
+ */
+const TRANSLATIONS = {
+	ja: {},
+	en: {}
+};
+
+let currentLang = "ja";
+let moduleInstance = null;
+
+const Log = { info: console.log, log: console.log, error: console.error };
+
+const Module = {
+	register (name, definition) {
+		const instance = Object.assign({
+			name,
+			identifier: "module_0_" + name,
+			data: { position: "fullscreen_below" },
+			config: {},
+			translate (key) {
+				const dict = TRANSLATIONS[currentLang] || {};
+				return dict[key] || key;
+			},
+			updateDom () {
+				render();
+			},
+			sendSocketNotification () { /* preview: no backend */ }
+		}, definition);
+
+		instance.config = Object.assign({}, definition.defaults);
+		moduleInstance = instance;
+	}
+};
+
+// -- mock device data ------------------------------------------------
+const mock = {
+	selling: false,
+	realtime () {
+		if (this.selling) {
+			const igo = 4260;
+			const isi = 2180;
+			const ibi = 0;
+			const aoc = igo + ibi - isi;
+			return { igo, isi, ibi, aoc, ssr: 100, status: "selling" };
+		}
+		const igo = 1420;
+		const isi = 0;
+		const ibi = 610;
+		const aoc = igo + ibi - isi;
+		return { igo, isi, ibi, aoc, ssr: (igo / aoc) * 100, status: "buying" };
+	},
+	daily: { igoWh: 8400, isiWh: 900, ismYen: 27, ibiWh: 15400, ibmYen: 478 },
+	total: { tgtWh: 12500000, tstWh: 4300000, tbtWh: 9800000 }
+};
+
+function render () {
+	const root = document.getElementById("hpm-root");
+	root.innerHTML = "";
+	root.appendChild(moduleInstance.getDom());
+}
+
+async function boot () {
+	// Load the module definition + translations.
+	TRANSLATIONS.ja = await (await fetch("../translations/ja.json")).json();
+	TRANSLATIONS.en = await (await fetch("../translations/en.json")).json();
+
+	await new Promise((resolve, reject) => {
+		const s = document.createElement("script");
+		s.src = "../MMM-HomePowerMonitor_forPanasonic.js";
+		s.onload = resolve;
+		s.onerror = reject;
+		document.head.appendChild(s);
+	});
+
+	// Configure like a real install pointed at the mock device.
+	Object.assign(moduleInstance.config, {
+		ipAddress: "127.0.0.1",
+		deviceId: "17120385X",
+		username: "user",
+		password: "12345678"
+	});
+
+	moduleInstance.start();
+	moduleInstance.loaded = true;
+	moduleInstance.connected = true;
+	moduleInstance.lastUpdated = Date.now();
+	moduleInstance.realtime = mock.realtime();
+	moduleInstance.daily = mock.daily;
+	moduleInstance.total = mock.total;
+	render();
+
+	// Simulate the 5s realtime polling so the animations can be reviewed.
+	setInterval(() => {
+		const rt = mock.realtime();
+		const jitter = (v) => Math.max(0, v * (0.9 + Math.random() * 0.2));
+		rt.igo = jitter(rt.igo);
+		rt.isi = jitter(rt.isi);
+		rt.ibi = jitter(rt.ibi);
+		rt.aoc = Math.max(0, rt.igo + rt.ibi - rt.isi);
+		rt.ssr = rt.aoc > 0 ? Math.min((rt.igo / rt.aoc) * 100, 100) : 100;
+		moduleInstance.realtime = rt;
+		moduleInstance.lastUpdated = Date.now();
+		render();
+	}, 5000);
+
+	document.getElementById("btn-toggle").addEventListener("click", () => {
+		mock.selling = !mock.selling;
+		moduleInstance.realtime = mock.realtime();
+		render();
+	});
+
+	document.getElementById("btn-lang").addEventListener("click", () => {
+		currentLang = currentLang === "ja" ? "en" : "ja";
+		render();
+	});
+}
+
+boot().catch((err) => {
+	document.getElementById("hpm-root").textContent = "Preview failed: " + err;
+	console.error(err);
+});
+</script>
+
+</body>
+</html>

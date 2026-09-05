@@ -3,3 +3,6 @@ npm-debug.log
 .DS_Store
 *.log
 .vscode/
+
+# local preview screenshots
+/shots/
