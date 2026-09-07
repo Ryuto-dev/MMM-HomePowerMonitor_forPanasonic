@@ -4,7 +4,7 @@
   "description": "MagicMirror² module for Panasonic energy monitor power detection units (e.g. VBPX274) — shows realtime solar/grid/home power flow with modern animated visuals.",
   "main": "MMM-HomePowerMonitor_forPanasonic.js",
   "scripts": {
-    "test": "echo \"No automated tests yet\" && exit 0"
+    "test": "node --test"
   },
   "keywords": [
     "magicmirror",

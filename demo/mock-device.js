@@ -84,10 +84,10 @@ function respond (res, items) {
 				parts.push(Math.round(state.ibi * 10) / 10);
 				break;
 			case "ISM":
-				parts.push(Math.round(state.dayIsiWh * 0.03));
+				parts.push(Math.round(state.dayIsiWh * 0.3));
 				break;
 			case "IBM":
-				parts.push(Math.round(state.dayIbiWh * 0.031));
+				parts.push(Math.round(state.dayIbiWh * 0.31));
 				break;
 			case "TGT":
 				parts.push(state.totalGtWh);

@@ -49,6 +49,7 @@ Module.register("MMM-HomePowerMonitor_forPanasonic", {
 		currencyLocale: "ja-JP",
 		decimalsRealtime: 1,
 		decimalsEnergy: 2,
+		decimalsCurrency: 1,
 
 		// --- Visuals ---
 		colorGeneration: "#ffd166",
@@ -228,10 +229,16 @@ Module.register("MMM-HomePowerMonitor_forPanasonic", {
 	},
 
 	_fmtYen (yen) {
-		const n = Math.round(Number(yen) || 0);
-		// Keep the sign in front of the currency symbol ("-¥451", not "¥-451").
+		const n = Number(yen) || 0;
+		const decimals = typeof this.config.decimalsCurrency === "number" ? this.config.decimalsCurrency : 1;
+		const absN = Math.abs(n);
+		const formatted = absN.toLocaleString(this.config.currencyLocale, {
+			minimumFractionDigits: decimals,
+			maximumFractionDigits: decimals
+		});
+		// Keep the sign in front of the currency symbol ("-¥451.0", not "¥-451.0").
 		const sign = n < 0 ? "-" : "";
-		return `${sign}${this.config.currencySymbol}${Math.abs(n).toLocaleString(this.config.currencyLocale)}`;
+		return `${sign}${this.config.currencySymbol}${formatted}`;
 	},
 
 	_flowDurationSec (watts) {

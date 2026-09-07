@@ -129,9 +129,9 @@ module.exports = NodeHelper.create({
 			.then((res) => {
 				const igoWh = this._num(res[3]);
 				const isiWh = this._num(res[4]);
-				const ismYen = this._num(res[5]);
+				const ismYen = this._num(res[5]) / 10;
 				const ibiWh = this._num(res[6]);
-				const ibmYen = this._num(res[7]);
+				const ibmYen = this._num(res[7]) / 10;
 
 				this.sendSocketNotification("HPM_DAILY_DATA", {
 					identifier,
