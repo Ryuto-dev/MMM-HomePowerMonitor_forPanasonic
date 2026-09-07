@@ -115,6 +115,7 @@ Add the module to the `modules` array in your `config/config.js`:
 | `currencyLocale` | `String` | `"ja-JP"` | Locale used for `Number.toLocaleString` formatting. |
 | `decimalsRealtime` | `Number` | `1` | Decimal places for realtime W values. |
 | `decimalsEnergy` | `Number` | `2` | Decimal places for kWh values. |
+| `decimalsCurrency` | `Number` | `1` | Decimal places for currency / yen values. |
 | `colorGeneration` | `String` (CSS color) | `#ffd166` | Color for the solar/generation node & flow. |
 | `colorSell` | `String` (CSS color) | `#06d6a0` | Color for selling power. |
 | `colorBuy` | `String` (CSS color) | `#ef476f` | Color for buying power. |
