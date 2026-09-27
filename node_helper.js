@@ -101,7 +101,7 @@ module.exports = NodeHelper.create({
 
 				let ssr = 0;
 				if (aoc > 0) {
-					ssr = Math.min((igo / aoc) * 100, 100);
+					ssr = (igo / aoc) * 100;
 				} else if (igo > 0) {
 					ssr = 100;
 				}
