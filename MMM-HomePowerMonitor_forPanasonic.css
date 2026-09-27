@@ -265,6 +265,15 @@
 	letter-spacing: 0.04em;
 }
 
+/* Over 100%: ring stays full, number/text switch to the generation color. */
+.mmm-hpm__ssr-ring--over .mmm-hpm__ssr-fg {
+	stroke: var(--hpm-gen);
+}
+
+.mmm-hpm__ssr-pct--over {
+	color: var(--hpm-gen);
+}
+
 /* ------------------------------------------------------------------ */
 /* Status badge (selling / buying)                                    */
 /* ------------------------------------------------------------------ */
@@ -1053,6 +1062,12 @@
 	line-height: 1;
 	color: #fff;
 	text-shadow: 0 0 calc(26 * var(--hpm-fs-u)) var(--hpm-accent);
+}
+
+/* Over 100%: arc stays full, value switches to the generation color. */
+.mmm-hpm__fs-gauge-pct--over {
+	color: var(--hpm-gen);
+	text-shadow: 0 0 calc(26 * var(--hpm-fs-u)) var(--hpm-gen);
 }
 
 .mmm-hpm__fs-gauge-pct small {

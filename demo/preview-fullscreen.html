@@ -111,7 +111,7 @@ const mock = {
 			const isi = 2180;
 			const ibi = 0;
 			const aoc = igo + ibi - isi;
-			return { igo, isi, ibi, aoc, ssr: 100, status: "selling" };
+			return { igo, isi, ibi, aoc, ssr: (igo / aoc) * 100, status: "selling" };
 		}
 		const igo = 1420;
 		const isi = 0;
@@ -167,7 +167,7 @@ async function boot () {
 		rt.isi = jitter(rt.isi);
 		rt.ibi = jitter(rt.ibi);
 		rt.aoc = Math.max(0, rt.igo + rt.ibi - rt.isi);
-		rt.ssr = rt.aoc > 0 ? Math.min((rt.igo / rt.aoc) * 100, 100) : 100;
+		rt.ssr = rt.aoc > 0 ? (rt.igo / rt.aoc) * 100 : 100;
 		moduleInstance.realtime = rt;
 		moduleInstance.lastUpdated = Date.now();
 		render();

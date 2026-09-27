@@ -347,13 +347,15 @@ Module.register("MMM-HomePowerMonitor_forPanasonic", {
 	},
 
 	_buildSSRRing (ssr) {
-		const pct = Math.max(0, Math.min(100, Number(ssr) || 0));
+		const value = Math.max(0, Number(ssr) || 0);
+		const pct = Math.min(value, 100);
 		const radius = 34;
 		const circumference = 2 * Math.PI * radius;
 		const offset = circumference * (1 - pct / 100);
+		const over = value > 100 ? " mmm-hpm__ssr-pct--over" : "";
 
 		const wrap = document.createElement("div");
-		wrap.className = "mmm-hpm__ssr-ring";
+		wrap.className = `mmm-hpm__ssr-ring${value > 100 ? " mmm-hpm__ssr-ring--over" : ""}`;
 
 		wrap.innerHTML = `
 			<svg viewBox="0 0 80 80" class="mmm-hpm__ssr-svg">
@@ -365,7 +367,7 @@ Module.register("MMM-HomePowerMonitor_forPanasonic", {
 					transform="rotate(-90 40 40)"></circle>
 			</svg>
 			<div class="mmm-hpm__ssr-text">
-				<span class="mmm-hpm__ssr-pct">${pct.toFixed(0)}%</span>
+				<span class="mmm-hpm__ssr-pct${over}">${value.toFixed(0)}%</span>
 				<span class="mmm-hpm__ssr-caption">${this.translate("SELF_SUFFICIENCY")}</span>
 			</div>
 		`;
@@ -689,14 +691,16 @@ Module.register("MMM-HomePowerMonitor_forPanasonic", {
 
 	_fsGauge () {
 		const rt = this.realtime || { ssr: 0 };
-		const pct = Math.max(0, Math.min(100, Number(rt.ssr) || 0));
+		const value = Math.max(0, Number(rt.ssr) || 0);
+		const pct = Math.min(value, 100);
 		const radius = 108;
 		const circumference = 2 * Math.PI * radius;
 		const offset = circumference * (1 - pct / 100);
 
 		const card = document.createElement("div");
-		card.className = "mmm-hpm__fs-card mmm-hpm__fs-card--gauge";
-		card.style.setProperty("--hpm-accent", this.config.colorConsumption);
+		const isOver = value > 100;
+		card.className = `mmm-hpm__fs-card mmm-hpm__fs-card--gauge${isOver ? " mmm-hpm__fs-card--over" : ""}`;
+		card.style.setProperty("--hpm-accent", isOver ? this.config.colorGeneration : this.config.colorConsumption);
 
 		card.innerHTML = `
 			<div class="mmm-hpm__fs-card-head">
@@ -712,7 +716,7 @@ Module.register("MMM-HomePowerMonitor_forPanasonic", {
 						transform="rotate(-90 130 130)"></circle>
 				</svg>
 				<div class="mmm-hpm__fs-gauge-text">
-					<span class="mmm-hpm__fs-gauge-pct">${pct.toFixed(0)}<small>%</small></span>
+					<span class="mmm-hpm__fs-gauge-pct${isOver ? " mmm-hpm__fs-gauge-pct--over" : ""}">${value.toFixed(0)}<small>%</small></span>
 				</div>
 			</div>
 			<div class="mmm-hpm__fs-card-bar"></div>
